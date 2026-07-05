@@ -21,15 +21,8 @@ export const Route = createFileRoute("/tools")({
   component: ToolsPage,
 });
 
-type Tool = {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  url: string | null;
-  command_example: string | null;
-  enabled: boolean;
-};
+import type { Tool } from "@/types";
+
 
 function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
