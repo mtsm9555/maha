@@ -18,16 +18,13 @@ export const Route = createFileRoute("/logs")({
   component: LogsPage,
 });
 
-type LogRow = {
-  id: string;
-  task_id: string | null;
-  tool_id: string | null;
-  status: string | null;
-  message: string | null;
-  created_at: string;
+import type { Log } from "@/types";
+
+type LogRow = Log & {
   tasks: { title: string } | null;
   tools: { name: string } | null;
 };
+
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive"> = {
   success: "default",

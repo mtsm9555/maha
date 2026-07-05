@@ -33,16 +33,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Task = {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: number;
-  due_date: string | null;
-  completed: boolean;
-  created_at: string;
-  updated_at: string;
-};
+import type { Task } from "@/types";
+
+
 
 const PRIORITY_LABEL: Record<number, string> = { 1: "Low", 2: "Medium", 3: "High" };
 const PRIORITY_VARIANT: Record<number, "secondary" | "default" | "destructive"> = {
