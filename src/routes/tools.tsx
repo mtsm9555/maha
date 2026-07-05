@@ -76,9 +76,10 @@ function ToolsPage() {
         <header className="space-y-2">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-bold tracking-tight">Tools</h1>
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Tasks
-            </Link>
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <Link to="/" className="hover:text-foreground">Tasks</Link>
+              <Link to="/logs" className="hover:text-foreground">Logs</Link>
+            </div>
           </div>
           <p className="text-muted-foreground">
             {tools.length} {tools.length === 1 ? "tool" : "tools"} available
