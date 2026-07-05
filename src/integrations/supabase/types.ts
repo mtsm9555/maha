@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      tools: {
+        Row: {
+          category: string | null
+          command_example: string | null
+          created_at: string | null
+          description: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          category?: string | null
+          command_example?: string | null
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          category?: string | null
+          command_example?: string | null
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -131,11 +131,17 @@ function Index() {
       <Toaster />
       <div className="mx-auto max-w-2xl space-y-8">
         <header className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Task Manager</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-bold tracking-tight">Task Manager</h1>
+            <Link to="/tools" className="text-sm text-muted-foreground hover:text-foreground">
+              Tools →
+            </Link>
+          </div>
           <p className="text-muted-foreground">
             {activeCount} active {activeCount === 1 ? "task" : "tasks"} · {tasks.length} total
           </p>
         </header>
+
 
         <Card className="p-6">
           <form onSubmit={addTask} className="space-y-4">
