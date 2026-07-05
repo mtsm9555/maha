@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          status: string | null
+          task_id: string | null
+          tool_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          status?: string | null
+          task_id?: string | null
+          tool_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          status?: string | null
+          task_id?: string | null
+          tool_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           completed: boolean | null

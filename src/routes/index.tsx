@@ -133,14 +133,16 @@ function Index() {
         <header className="space-y-2">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-bold tracking-tight">Task Manager</h1>
-            <Link to="/tools" className="text-sm text-muted-foreground hover:text-foreground">
-              Tools →
-            </Link>
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <Link to="/tools" className="hover:text-foreground">Tools</Link>
+              <Link to="/logs" className="hover:text-foreground">Logs</Link>
+            </div>
           </div>
           <p className="text-muted-foreground">
             {activeCount} active {activeCount === 1 ? "task" : "tasks"} · {tasks.length} total
           </p>
         </header>
+
 
 
         <Card className="p-6">
