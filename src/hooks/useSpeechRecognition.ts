@@ -1,65 +1,64 @@
-import { useEffect, useRef, useState } from "react";
+// hooks/useSpeechRecognition.ts
+import { useState, useEffect } from 'react';
 
-type SpeechRecognitionInstance = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onresult:
-    | ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void)
-    | null;
-  onerror: ((event: { error: string }) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-
-type SpeechRecognitionCtor = new () => SpeechRecognitionInstance;
-
-export function useSpeechRecognition() {
+export const useSpeechRecognition = () => {
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
-  const [supported, setSupported] = useState(false);
+  const [transcript, setTranscript] = useState('');
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const Ctor =
-      (window as unknown as { SpeechRecognition?: SpeechRecognitionCtor })
-        .SpeechRecognition ??
-      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionCtor })
-        .webkitSpeechRecognition;
-    if (!Ctor) return;
-    setSupported(true);
-    const rec = new Ctor();
-    rec.lang = navigator.language || "en-US";
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.onresult = (event) => {
-      const text = Array.from(event.results)
-        .map((r) => r[0].transcript)
-        .join(" ");
-      setTranscript(text);
-    };
-    rec.onerror = () => setIsListening(false);
-    rec.onend = () => setIsListening(false);
-    recognitionRef.current = rec;
-  }, []);
-
-  function startListening() {
-    if (!recognitionRef.current) return;
-    setTranscript("");
-    try {
-      recognitionRef.current.start();
-      setIsListening(true);
-    } catch {
-      // already started
+    if (!('webkitSpeechRecognition' in window)) {
+      console.warn('Speech Recognition not supported');
+      return;
     }
-  }
 
-  function stopListening() {
-    recognitionRef.current?.stop();
+    const recognition = new (window as any).webkitSpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US'; // デフォルトは英語。必要に応じて変更。
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript;
+      setTranscript(text);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    if (isListening) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+
+    return () => {
+      recognition.stop();
+    };
+  }, [isListening]);
+
+  const startListening = () => {
+    setTranscript('');
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
     setIsListening(false);
-  }
+  };
 
-  return { supported, isListening, transcript, startListening, stopListening };
-}
+  return {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+  };
+};
