@@ -71,13 +71,13 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center justify-between px-4 py-3 bg-task-panel border-b border-border">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg">
             M
           </div>
           <div>
-            <h2 className="text-xl font-semibold">Maha</h2>
+            <h2 className="text-lg font-semibold leading-tight">Maha</h2>
             <p className="text-xs text-muted-foreground">
               {pending ? "Thinking…" : synth.speaking ? "Speaking…" : "Ready"}
             </p>
@@ -95,12 +95,12 @@ export function Chat() {
         </Button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-1 mb-3">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <Card
               className={`p-3 max-w-[85%] text-sm whitespace-pre-wrap ${
-                m.role === "user" ? "bg-primary text-primary-foreground" : ""
+                m.role === "user" ? "bg-primary text-primary-foreground border-primary" : ""
               }`}
             >
               {m.content}
@@ -119,7 +119,7 @@ export function Chat() {
           e.preventDefault();
           sendMessage(input);
         }}
-        className="flex gap-2"
+        className="flex gap-2 px-4 py-3 bg-task-panel border-t border-border"
       >
         <Input
           placeholder={speech.isListening ? "Listening…" : "Type a message or use voice…"}
@@ -144,3 +144,4 @@ export function Chat() {
     </div>
   );
 }
+

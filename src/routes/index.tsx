@@ -33,7 +33,7 @@ function Index() {
         </div>
       </header>
       <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-[7fr_3fr]">
-        <section className="min-h-0 border-r border-border p-6 overflow-hidden">
+        <section className="min-h-0 border-r border-border overflow-hidden">
           <Chat />
         </section>
         <section className="min-h-0 bg-task-panel p-6 overflow-hidden">
