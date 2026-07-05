@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Send, Sparkles } from "lucide-react";
+import { Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { chatWithMaha } from "@/lib/chat.functions";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -16,23 +18,31 @@ export function Chat() {
   ]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const speech = useSpeechRecognition();
+  const synth = useSpeechSynthesis();
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, pending]);
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || pending) return;
-    const next: Message[] = [...messages, { role: "user", content: text }];
+  useEffect(() => {
+    if (speech.transcript) setInput(speech.transcript);
+  }, [speech.transcript]);
+
+  async function sendMessage(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || pending) return;
+    const next: Message[] = [...messages, { role: "user", content: trimmed }];
     setMessages(next);
     setInput("");
     setPending(true);
     try {
       const { reply } = await call({ data: { messages: next } });
       setMessages([...next, { role: "assistant", content: reply }]);
+      if (voiceOn) synth.speak(reply);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Chat failed");
       setMessages(messages);
@@ -41,14 +51,48 @@ export function Chat() {
     }
   }
 
+  function handleVoice() {
+    if (!speech.supported) {
+      toast.error("Voice input not supported in this browser");
+      return;
+    }
+    if (speech.isListening) {
+      speech.stopListening();
+      if (speech.transcript) sendMessage(speech.transcript);
+    } else {
+      speech.startListening();
+    }
+  }
+
+  function toggleVoiceOut() {
+    if (synth.speaking) synth.cancel();
+    setVoiceOn((v) => !v);
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-primary" />
-        <div>
-          <h2 className="text-xl font-semibold">Maha</h2>
-          <p className="text-xs text-muted-foreground">Your productivity assistant</p>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg">
+            M
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold">Maha</h2>
+            <p className="text-xs text-muted-foreground">
+              {pending ? "Thinking…" : synth.speaking ? "Speaking…" : "Ready"}
+            </p>
+          </div>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={toggleVoiceOut}
+          aria-label={voiceOn ? "Mute voice" : "Unmute voice"}
+          title={voiceOn ? "Voice on" : "Voice off"}
+        >
+          {voiceOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+        </Button>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 pr-1 mb-3">
@@ -70,13 +114,29 @@ export function Chat() {
         )}
       </div>
 
-      <form onSubmit={send} className="flex gap-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          sendMessage(input);
+        }}
+        className="flex gap-2"
+      >
         <Input
-          placeholder="Message Maha…"
+          placeholder={speech.isListening ? "Listening…" : "Type a message or use voice…"}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={pending}
         />
+        <Button
+          type="button"
+          size="icon"
+          variant={speech.isListening ? "destructive" : "outline"}
+          onClick={handleVoice}
+          disabled={pending}
+          aria-label={speech.isListening ? "Stop listening" : "Start voice input"}
+        >
+          {speech.isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
         <Button type="submit" size="icon" disabled={pending || !input.trim()}>
           <Send className="h-4 w-4" />
         </Button>
