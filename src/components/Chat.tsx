@@ -52,7 +52,7 @@ export function Chat() {
   }
 
   function handleVoice() {
-    if (!speech.supported) {
+    if (!('webkitSpeechRecognition' in window)) {
       toast.error("Voice input not supported in this browser");
       return;
     }
