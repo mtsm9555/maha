@@ -65,7 +65,7 @@ export function Chat() {
   }
 
   function toggleVoiceOut() {
-    if (synth.speaking) synth.cancel();
+    if (synth.isSpeaking) window.speechSynthesis.cancel();
     setVoiceOn((v) => !v);
   }
 
@@ -79,7 +79,7 @@ export function Chat() {
           <div>
             <h2 className="text-lg font-semibold leading-tight">Maha</h2>
             <p className="text-xs text-muted-foreground">
-              {pending ? "Thinking…" : synth.speaking ? "Speaking…" : "Ready"}
+              {pending ? "Thinking…" : synth.isSpeaking ? "Speaking…" : "Ready"}
             </p>
           </div>
         </div>
