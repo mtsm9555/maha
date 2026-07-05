@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { Trash2, Plus, CheckCircle2, Circle, CalendarIcon } from "lucide-react";
+import { Trash2, Plus, CalendarIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
