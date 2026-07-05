@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 
-type SpeechRecognitionCtor = new () => {
+type SpeechRecognitionInstance = {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
-  onresult: ((event: {
-    results: ArrayLike<ArrayLike<{ transcript: string }>>;
-  }) => void) | null;
+  onresult:
+    | ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void)
+    | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;
 };
 
+type SpeechRecognitionCtor = new () => SpeechRecognitionInstance;
+
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const recognitionRef = useRef<ReturnType<SpeechRecognitionCtor> | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [supported, setSupported] = useState(false);
 
   useEffect(() => {
