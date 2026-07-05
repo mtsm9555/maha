@@ -1,31 +1,38 @@
-import { useCallback, useEffect, useState } from "react";
+// hooks/useSpeechSynthesis.ts
+import { useState } from 'react';
 
-export function useSpeechSynthesis() {
-  const [supported, setSupported] = useState(false);
-  const [speaking, setSpeaking] = useState(false);
+export const useSpeechSynthesis = () => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      setSupported(true);
+  const speak = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech Synthesis not supported');
+      return;
     }
-  }, []);
 
-  const speak = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = navigator.language || "en-US";
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    setSpeaking(true);
-    window.speechSynthesis.speak(utterance);
-  }, []);
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
 
-  const cancel = useCallback(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    setSpeaking(false);
-  }, []);
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
 
-  return { supported, speaking, speak, cancel };
-}
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      setIsSpeaking(false);
+    };
+
+    speechSynthesis.speak(utterance);
+  };
+
+  return {
+    isSpeaking,
+    speak,
+  };
+};
