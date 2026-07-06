@@ -1,0 +1,73 @@
+import { callHermesAgent } from "./hermesAgent";
+import { callPicoclaw } from "./picoclaw";
+import { callNemotronOcr } from "./nemotronOcr";
+import { callNvidiaBuild } from "./nvidiaBuild";
+
+export type ToolRunner = {
+  key: string;
+  label: string;
+  category: string;
+  inputLabel: string;
+  placeholder: string;
+  run: (input: string) => Promise<string>;
+};
+
+const toText = (v: unknown): string =>
+  typeof v === "string" ? v : JSON.stringify(v, null, 2);
+
+export const TOOL_RUNNERS: ToolRunner[] = [
+  {
+    key: "hermes",
+    label: "Hermes Agent",
+    category: "ai",
+    inputLabel: "Prompt",
+    placeholder: "Ask Hermes anything…",
+    run: (input) => callHermesAgent(input),
+  },
+  {
+    key: "picoclaw",
+    label: "Picoclaw",
+    category: "automation",
+    inputLabel: "Command",
+    placeholder: "e.g. open https://example.com",
+    run: async (input) => toText(await callPicoclaw(input)),
+  },
+  {
+    key: "nemotron-ocr",
+    label: "Nemotron OCR",
+    category: "vision",
+    inputLabel: "Image URL",
+    placeholder: "https://…/image.png",
+    run: (input) => callNemotronOcr(input),
+  },
+  {
+    key: "nvidia-build",
+    label: "NVIDIA Build",
+    category: "ai",
+    inputLabel: "Skill / input JSON",
+    placeholder: '{"skill":"summarize","input":"…"}',
+    run: async (input) => {
+      let skill = "default";
+      let payload: unknown = input;
+      try {
+        const parsed = JSON.parse(input);
+        if (parsed && typeof parsed === "object") {
+          const obj = parsed as { skill?: string; input?: unknown };
+          skill = obj.skill ?? skill;
+          payload = obj.input ?? parsed;
+        }
+      } catch {
+        // treat as plain string input
+      }
+      return toText(await callNvidiaBuild(skill, payload));
+    },
+  },
+];
+
+export function findRunner(name: string | null | undefined): ToolRunner | undefined {
+  if (!name) return undefined;
+  const key = name.toLowerCase();
+  return TOOL_RUNNERS.find(
+    (r) => r.key === key || r.label.toLowerCase() === key || key.includes(r.key),
+  );
+}
