@@ -29,3 +29,10 @@ export interface Log {
   message?: string | null;
   created_at: string;
 }
+
+export interface Message {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: Date;
+}
