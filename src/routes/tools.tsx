@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ExternalLink, Search } from "lucide-react";
+import { TOOL_RUNNERS } from "@/lib/toolRunners";
+import { ToolRunnerCard } from "@/components/ToolRunnerCard";
 
 export const Route = createFileRoute("/tools")({
   head: () => ({
@@ -112,42 +114,54 @@ function ToolsPage() {
           )}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          {loading ? (
-            <p className="text-muted-foreground col-span-full text-center py-8">Loading…</p>
-          ) : filtered.length === 0 ? (
-            <p className="text-muted-foreground col-span-full text-center py-8">
-              {tools.length === 0 ? "No tools yet." : "No tools match your search."}
-            </p>
-          ) : (
-            filtered.map((tool) => (
-              <Card key={tool.id} className="p-5 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold">{tool.name}</h3>
-                  {tool.category && <Badge variant="secondary">{tool.category}</Badge>}
-                </div>
-                {tool.description && (
-                  <p className="text-sm text-muted-foreground">{tool.description}</p>
-                )}
-                {tool.command_example && (
-                  <pre className="text-xs bg-muted rounded p-2 overflow-x-auto font-mono">
-                    {tool.command_example}
-                  </pre>
-                )}
-                {tool.url && (
-                  <a
-                    href={tool.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-auto"
-                  >
-                    Open <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </Card>
-            ))
-          )}
-        </div>
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Run a tool</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {TOOL_RUNNERS.map((r) => (
+              <ToolRunnerCard key={r.key} runner={r} />
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Catalog</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {loading ? (
+              <p className="text-muted-foreground col-span-full text-center py-8">Loading…</p>
+            ) : filtered.length === 0 ? (
+              <p className="text-muted-foreground col-span-full text-center py-8">
+                {tools.length === 0 ? "No tools yet." : "No tools match your search."}
+              </p>
+            ) : (
+              filtered.map((tool) => (
+                <Card key={tool.id} className="p-5 flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold">{tool.name}</h3>
+                    {tool.category && <Badge variant="secondary">{tool.category}</Badge>}
+                  </div>
+                  {tool.description && (
+                    <p className="text-sm text-muted-foreground">{tool.description}</p>
+                  )}
+                  {tool.command_example && (
+                    <pre className="text-xs bg-muted rounded p-2 overflow-x-auto font-mono">
+                      {tool.command_example}
+                    </pre>
+                  )}
+                  {tool.url && (
+                    <a
+                      href={tool.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-auto"
+                    >
+                      Open <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </Card>
+              ))
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
