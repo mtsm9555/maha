@@ -2,6 +2,7 @@ import { callHermesAgent } from "./hermesAgent";
 import { callPicoclaw } from "./picoclaw";
 import { callNemotronOcr } from "./nemotronOcr";
 import { callNvidiaBuild } from "./nvidiaBuild";
+import { callN8N } from "./n8n";
 
 export type ToolRunner = {
   key: string;
