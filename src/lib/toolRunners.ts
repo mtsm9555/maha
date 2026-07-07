@@ -1,11 +1,14 @@
-import { callHermesAgent } from "./hermesAgent";
-import { callPicoclaw } from "./picoclaw";
-import { callNemotronOcr } from "./nemotronOcr";
-import { callNvidiaBuild } from "./nvidiaBuild";
-import { callN8N } from "./n8n";
+import { runTool } from "./tools.functions";
+
+export type ToolKey =
+  | "hermes"
+  | "picoclaw"
+  | "nemotron-ocr"
+  | "nvidia-build"
+  | "n8n";
 
 export type ToolRunner = {
-  key: string;
+  key: ToolKey;
   label: string;
   category: string;
   inputLabel: string;
@@ -13,8 +16,10 @@ export type ToolRunner = {
   run: (input: string) => Promise<string>;
 };
 
-const toText = (v: unknown): string =>
-  typeof v === "string" ? v : JSON.stringify(v, null, 2);
+const call = (tool: ToolKey) => async (input: string) => {
+  const { output } = await runTool({ data: { tool, input } });
+  return output;
+};
 
 export const TOOL_RUNNERS: ToolRunner[] = [
   {
@@ -23,7 +28,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "ai",
     inputLabel: "Prompt",
     placeholder: "Ask Hermes anything…",
-    run: (input) => callHermesAgent(input),
+    run: call("hermes"),
   },
   {
     key: "picoclaw",
@@ -31,7 +36,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "automation",
     inputLabel: "Command",
     placeholder: "e.g. open https://example.com",
-    run: async (input) => toText(await callPicoclaw(input)),
+    run: call("picoclaw"),
   },
   {
     key: "nemotron-ocr",
@@ -39,7 +44,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "vision",
     inputLabel: "Image URL",
     placeholder: "https://…/image.png",
-    run: (input) => callNemotronOcr(input),
+    run: call("nemotron-ocr"),
   },
   {
     key: "nvidia-build",
@@ -47,21 +52,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "ai",
     inputLabel: "Skill / input JSON",
     placeholder: '{"skill":"summarize","input":"…"}',
-    run: async (input) => {
-      let skill = "default";
-      let payload: unknown = input;
-      try {
-        const parsed = JSON.parse(input);
-        if (parsed && typeof parsed === "object") {
-          const obj = parsed as { skill?: string; input?: unknown };
-          skill = obj.skill ?? skill;
-          payload = obj.input ?? parsed;
-        }
-      } catch {
-        // treat as plain string input
-      }
-      return toText(await callNvidiaBuild(skill, payload));
-    },
+    run: call("nvidia-build"),
   },
   {
     key: "n8n",
@@ -69,22 +60,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "automation",
     inputLabel: "Workflow ID + JSON payload",
     placeholder: '{"workflowId":"abc123","payload":{"foo":"bar"}}',
-    run: async (input) => {
-      let workflowId = input.trim();
-      let payload: unknown = {};
-      try {
-        const parsed = JSON.parse(input);
-        if (parsed && typeof parsed === "object") {
-          const obj = parsed as { workflowId?: string; payload?: unknown };
-          if (obj.workflowId) workflowId = obj.workflowId;
-          if (obj.payload !== undefined) payload = obj.payload;
-        }
-      } catch {
-        // treat entire input as workflow id
-      }
-      if (!workflowId) throw new Error("workflowId is required");
-      return toText(await callN8N(workflowId, payload));
-    },
+    run: call("n8n"),
   },
 ];
 
