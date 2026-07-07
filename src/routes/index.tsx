@@ -59,12 +59,18 @@ function useAnimatedValue(target: number, duration = 1400) {
 }
 
 function MahaHome() {
-  const time = useClock();
   return (
-    <main className="relative z-10 min-h-screen px-6 py-8 md:px-12 md:py-12">
-      <Header time={time} />
-
-      <section className="mx-auto mt-10 grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+    <PageShell
+      eyebrow="Overview"
+      title="Command Deck"
+      subtitle="Live pulse of Maha — reasoning cycles, token budget and skill matrix."
+      actions={
+        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+          ● Agent online
+        </span>
+      }
+    >
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         <ActivityRingsCard />
         <TokenGaugeCard />
         <SkillRadarCard />
@@ -72,37 +78,15 @@ function MahaHome() {
 
       <QuickActions />
 
-      <footer className="mx-auto mt-12 flex max-w-7xl items-center justify-between text-xs text-white/40">
+      <footer className="mt-12 flex items-center justify-between text-xs text-white/40">
         <span>Maha OS · v0.4</span>
         <span className="font-mono">STATUS · ONLINE</span>
       </footer>
-    </main>
+    </PageShell>
   );
 }
 
-function Header({ time }: { time: string }) {
-  return (
-    <header className="mx-auto flex max-w-7xl items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_10px_30px_-8px_rgba(139,92,246,0.7)]">
-          <span className="font-bold">M</span>
-          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
-        </div>
-        <div>
-          <div className="text-sm font-semibold tracking-wide text-white">
-            Maha <span className="text-white/40">· AI Agent</span>
-          </div>
-          <div className="text-[11px] uppercase tracking-[0.25em] text-white/40">
-            Command Deck
-          </div>
-        </div>
-      </div>
-      <div className="font-mono text-sm text-white/70 tabular-nums md:text-base">
-        {time || "--:--:--"}
-      </div>
-    </header>
-  );
-}
+
 
 function Card({
   children,
