@@ -127,7 +127,7 @@ export function Chat() {
           e.preventDefault();
           sendMessage(input);
         }}
-        className="flex gap-2 px-4 py-3 bg-task-panel border-t border-border"
+        className="relative z-10 flex gap-2 px-4 py-3 bg-task-panel/70 backdrop-blur border-t border-primary/30"
       >
         <Input
           placeholder={speech.isListening ? "Listening…" : "Type a message or use voice…"}
