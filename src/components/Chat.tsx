@@ -72,7 +72,7 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-full min-h-0 relative z-10">
-      <JarvisHud speaking={pending || synth.isSpeaking || speech.isListening} />
+      
       <div className="relative z-10 flex items-center justify-between px-4 py-3 bg-task-panel/60 backdrop-blur border-b border-primary/30">
         <div className="flex items-center gap-3">
           <div className="relative h-12 w-12 grid place-items-center">
