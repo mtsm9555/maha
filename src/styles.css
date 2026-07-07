@@ -147,8 +147,8 @@
   * { border-color: var(--color-border); }
   body {
     background:
-      radial-gradient(1200px 700px at 50% -10%, rgba(0, 229, 255, 0.10), transparent 60%),
-      radial-gradient(700px 400px at 100% 100%, rgba(0, 119, 170, 0.12), transparent 60%),
+      radial-gradient(1200px 700px at 50% -10%, hsl(263.4 70% 50.4% / 0.12), transparent 60%),
+      radial-gradient(700px 400px at 100% 100%, hsl(280 65% 60% / 0.10), transparent 60%),
       linear-gradient(var(--color-background), var(--color-background));
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -160,8 +160,8 @@
     inset: 0;
     pointer-events: none;
     background-image:
-      linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+      linear-gradient(hsl(263.4 70% 50.4% / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(263.4 70% 50.4% / 0.05) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
     z-index: 0;
