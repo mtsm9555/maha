@@ -8,7 +8,7 @@ import { Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { chatWithMaha } from "@/lib/chat.functions";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
-import { JarvisHud } from "@/components/JarvisHud";
+
 
 type Message = { role: "user" | "assistant"; content: string };
 
