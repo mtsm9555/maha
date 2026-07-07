@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { PageShell } from "@/components/PageShell";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
