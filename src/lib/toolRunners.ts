@@ -63,6 +63,29 @@ export const TOOL_RUNNERS: ToolRunner[] = [
       return toText(await callNvidiaBuild(skill, payload));
     },
   },
+  {
+    key: "n8n",
+    label: "n8n Workflow",
+    category: "automation",
+    inputLabel: "Workflow ID + JSON payload",
+    placeholder: '{"workflowId":"abc123","payload":{"foo":"bar"}}',
+    run: async (input) => {
+      let workflowId = input.trim();
+      let payload: unknown = {};
+      try {
+        const parsed = JSON.parse(input);
+        if (parsed && typeof parsed === "object") {
+          const obj = parsed as { workflowId?: string; payload?: unknown };
+          if (obj.workflowId) workflowId = obj.workflowId;
+          if (obj.payload !== undefined) payload = obj.payload;
+        }
+      } catch {
+        // treat entire input as workflow id
+      }
+      if (!workflowId) throw new Error("workflowId is required");
+      return toText(await callN8N(workflowId, payload));
+    },
+  },
 ];
 
 export function findRunner(name: string | null | undefined): ToolRunner | undefined {
