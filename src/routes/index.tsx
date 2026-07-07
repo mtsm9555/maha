@@ -23,23 +23,6 @@ export const Route = createFileRoute("/")({
   component: MahaHome,
 });
 
-function useClock() {
-  const [t, setT] = useState("");
-  useEffect(() => {
-    const tick = () =>
-      setT(
-        new Date().toLocaleTimeString("en-GB", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-      );
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-  return t;
-}
 
 function useAnimatedValue(target: number, duration = 1400) {
   const [v, setV] = useState(0);
