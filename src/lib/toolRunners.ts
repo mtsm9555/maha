@@ -13,6 +13,7 @@ export type ToolRunner = {
   category: string;
   inputLabel: string;
   placeholder: string;
+  sampleInput: string;
   run: (input: string) => Promise<string>;
 };
 
