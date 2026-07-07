@@ -4,9 +4,11 @@ import { toast } from "sonner";
 import { TOOL_RUNNERS, type ToolRunner } from "@/lib/toolRunners";
 
 function useClock() {
-  const [t, setT] = useState(() => new Date().toTimeString().split(" ")[0]);
+  const [t, setT] = useState<string>("");
   useEffect(() => {
-    const id = setInterval(() => setT(new Date().toTimeString().split(" ")[0]), 1000);
+    const tick = () => setT(new Date().toTimeString().split(" ")[0]);
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
   return t;
