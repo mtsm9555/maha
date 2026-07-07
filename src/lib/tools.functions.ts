@@ -103,16 +103,38 @@ export const runTool = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ output: string }> => {
     const toText = (v: unknown) =>
       typeof v === "string" ? v : JSON.stringify(v, null, 2);
-    switch (data.tool) {
-      case "hermes":
-        return { output: await runHermes(data.input) };
-      case "picoclaw":
-        return { output: toText(await runPicoclaw(data.input)) };
-      case "nemotron-ocr":
-        return { output: await runNemotronOcr(data.input) };
-      case "nvidia-build":
-        return { output: toText(await runNvidiaBuild(data.input)) };
-      case "n8n":
-        return { output: toText(await runN8N(data.input)) };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let output = "";
+    let status: "success" | "error" = "success";
+    let message = "";
+    try {
+      switch (data.tool) {
+        case "hermes":
+          output = await runHermes(data.input);
+          break;
+        case "picoclaw":
+          output = toText(await runPicoclaw(data.input));
+          break;
+        case "nemotron-ocr":
+          output = await runNemotronOcr(data.input);
+          break;
+        case "nvidia-build":
+          output = toText(await runNvidiaBuild(data.input));
+          break;
+        case "n8n":
+          output = toText(await runN8N(data.input));
+          break;
+      }
+      message = `[${data.tool}] input=${data.input.slice(0, 200)} → ${output.slice(0, 500)}`;
+    } catch (err) {
+      status = "error";
+      message = `[${data.tool}] input=${data.input.slice(0, 200)} → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+      await supabaseAdmin.from("logs").insert({ status, message });
+      throw err;
     }
+    await supabaseAdmin.from("logs").insert({ status, message });
+    return { output };
   });

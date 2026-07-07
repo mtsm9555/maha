@@ -13,6 +13,7 @@ export type ToolRunner = {
   category: string;
   inputLabel: string;
   placeholder: string;
+  sampleInput: string;
   run: (input: string) => Promise<string>;
 };
 
@@ -28,6 +29,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "ai",
     inputLabel: "Prompt",
     placeholder: "Ask Hermes anything…",
+    sampleInput: "Say hello in one short sentence.",
     run: call("hermes"),
   },
   {
@@ -36,6 +38,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "automation",
     inputLabel: "Command",
     placeholder: "e.g. open https://example.com",
+    sampleInput: "ping",
     run: call("picoclaw"),
   },
   {
@@ -44,6 +47,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "vision",
     inputLabel: "Image URL",
     placeholder: "https://…/image.png",
+    sampleInput: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Camponotus_flavomarginatus_ant.jpg/320px-Camponotus_flavomarginatus_ant.jpg",
     run: call("nemotron-ocr"),
   },
   {
@@ -52,6 +56,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "ai",
     inputLabel: "Skill / input JSON",
     placeholder: '{"skill":"summarize","input":"…"}',
+    sampleInput: '{"skill":"summarize","input":"Lovable is a platform for building web apps."}',
     run: call("nvidia-build"),
   },
   {
@@ -60,6 +65,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "automation",
     inputLabel: "Workflow ID + JSON payload",
     placeholder: '{"workflowId":"abc123","payload":{"foo":"bar"}}',
+    sampleInput: '{"workflowId":"test","payload":{"ping":true}}',
     run: call("n8n"),
   },
 ];
