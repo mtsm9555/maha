@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, FlaskConical } from "lucide-react";
 import type { ToolRunner } from "@/lib/toolRunners";
 
 interface Props {
@@ -17,23 +17,29 @@ export function ToolRunnerCard({ runner }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function handleRun() {
-    if (!input.trim() || pending) return;
+  async function runWith(value: string) {
+    if (!value.trim() || pending) return;
     setPending(true);
     setOutput(null);
     setError(null);
     try {
-      const result = await runner.run(input.trim());
+      const result = await runner.run(value.trim());
       setOutput(result);
-      toast.success(`${runner.label} finished`);
+      toast.success(`${runner.label} finished — logged`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
-      toast.error(msg);
+      toast.error(`${runner.label} failed — logged`);
     } finally {
       setPending(false);
     }
   }
+
+  const handleRun = () => runWith(input);
+  const handleTest = () => {
+    setInput(runner.sampleInput);
+    runWith(runner.sampleInput);
+  };
 
   return (
     <Card className="p-5 flex flex-col gap-3">
