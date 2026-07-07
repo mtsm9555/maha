@@ -14,14 +14,22 @@ function requireEnv(name: string): string {
 
 async function runHermes(prompt: string): Promise<string> {
   const key = requireEnv("HERMES_API_KEY");
-  const res = await fetch("https://hermes-agent.nousresearch.com/api/generate", {
+  const base = (process.env.HERMES_BASE_URL || "http://127.0.0.1:8642/v1").replace(/\/$/, "");
+  const model = process.env.HERMES_MODEL || "hermes-agent";
+  const res = await fetch(`${base}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ prompt, max_tokens: 500, temperature: 0.7 }),
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+    }),
   });
-  if (!res.ok) throw new Error(`Hermes HTTP ${res.status}`);
-  const data = (await res.json()) as { text?: string; response?: string };
-  return data.text || data.response || "";
+  if (!res.ok) throw new Error(`Hermes HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    text?: string;
+  };
+  return data.choices?.[0]?.message?.content ?? data.text ?? "";
 }
 
 async function runPicoclaw(command: string): Promise<unknown> {
