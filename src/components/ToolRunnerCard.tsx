@@ -62,6 +62,16 @@ export function ToolRunnerCard({ runner }: Props) {
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
         </Button>
       </div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleTest}
+        disabled={pending}
+        className="self-start"
+      >
+        <FlaskConical className="h-3 w-3 mr-1" />
+        Test with sample
+      </Button>
       {output && (
         <pre className="text-xs bg-muted rounded p-2 overflow-x-auto whitespace-pre-wrap max-h-64">
           {output}
