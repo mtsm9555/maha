@@ -102,44 +102,44 @@
 }
 
 .dark {
-  /* JARVIS HUD palette — deep space blue + electric cyan */
-  --background: #030a12;
-  --foreground: #d6f6ff;
-  --card: #071522;
-  --card-foreground: #d6f6ff;
-  --popover: #071522;
-  --popover-foreground: #d6f6ff;
-  --primary: #00e5ff;
-  --primary-foreground: #001018;
-  --secondary: #0b2030;
-  --secondary-foreground: #d6f6ff;
-  --muted: #081827;
-  --muted-foreground: #6ea8bd;
-  --accent: #00e5ff;
-  --accent-foreground: #001018;
-  --destructive: #ff5470;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 229, 255, 0.22);
-  --input: rgba(0, 229, 255, 0.25);
-  --ring: #00e5ff;
-  --chart-1: #00e5ff;
-  --chart-2: #38bdf8;
-  --chart-3: #22d3ee;
-  --chart-4: #7dd3fc;
-  --chart-5: #f472b6;
-  --sidebar: #050f18;
-  --sidebar-foreground: #d6f6ff;
-  --sidebar-primary: #00e5ff;
-  --sidebar-primary-foreground: #001018;
-  --sidebar-accent: #0b2030;
-  --sidebar-accent-foreground: #d6f6ff;
-  --sidebar-border: rgba(0, 229, 255, 0.22);
-  --sidebar-ring: #00e5ff;
-  --task-panel: #050f18;
+  /* Maha Control Panel — dark violet palette */
+  --background: hsl(224 71% 4%);
+  --foreground: hsl(213 31% 91%);
+  --card: hsl(224 71% 4%);
+  --card-foreground: hsl(213 31% 91%);
+  --popover: hsl(224 71% 4%);
+  --popover-foreground: hsl(213 31% 91%);
+  --primary: hsl(263.4 70% 50.4%);
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(222.2 47.4% 11.2%);
+  --secondary-foreground: hsl(210 40% 98%);
+  --muted: hsl(223 47% 11%);
+  --muted-foreground: hsl(215.4 16.3% 56.9%);
+  --accent: hsl(216 34% 17%);
+  --accent-foreground: hsl(210 40% 98%);
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(216 34% 17%);
+  --input: hsl(216 34% 17%);
+  --ring: hsl(263.4 70% 50.4%);
+  --chart-1: hsl(263.4 70% 50.4%);
+  --chart-2: hsl(280 65% 60%);
+  --chart-3: hsl(250 70% 55%);
+  --chart-4: hsl(300 60% 55%);
+  --chart-5: hsl(230 60% 60%);
+  --sidebar: hsl(224 71% 4%);
+  --sidebar-foreground: hsl(213 31% 91%);
+  --sidebar-primary: hsl(263.4 70% 50.4%);
+  --sidebar-primary-foreground: hsl(210 40% 98%);
+  --sidebar-accent: hsl(216 34% 17%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(216 34% 17%);
+  --sidebar-ring: hsl(263.4 70% 50.4%);
+  --task-panel: hsl(224 71% 4%);
 
-  --glow-primary: 0 0 24px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(0, 229, 255, 0.15);
-  --glow-accent: 0 0 28px rgba(0, 229, 255, 0.5);
-  --gradient-primary: linear-gradient(135deg, #00e5ff 0%, #0077aa 100%);
+  --glow-primary: 0 0 24px hsl(263.4 70% 50.4% / 0.45), inset 0 0 12px hsl(263.4 70% 50.4% / 0.15);
+  --glow-accent: 0 0 28px hsl(263.4 70% 50.4% / 0.5);
+  --gradient-primary: linear-gradient(135deg, hsl(263.4 70% 50.4%) 0%, hsl(250 70% 30%) 100%);
 }
 
 @layer base {
