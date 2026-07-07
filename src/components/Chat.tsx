@@ -134,6 +134,7 @@ export function Chat() {
           onClick={handleVoice}
           disabled={pending}
           aria-label={speech.isListening ? "Stop listening" : "Start voice input"}
+          className={speech.isListening ? "animate-mic-pulse" : ""}
         >
           {speech.isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
