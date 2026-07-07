@@ -99,12 +99,14 @@ export function Chat() {
         </Button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-4">
+      <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto space-y-3 p-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <Card
-              className={`p-3 max-w-[85%] text-sm whitespace-pre-wrap ${
-                m.role === "user" ? "bg-primary text-primary-foreground border-primary" : ""
+              className={`p-3 max-w-[85%] text-sm whitespace-pre-wrap backdrop-blur-md ${
+                m.role === "user"
+                  ? "bg-primary/90 text-primary-foreground border-primary glow-accent"
+                  : "bg-card/60 border-primary/30"
               }`}
             >
               {m.content}
@@ -113,7 +115,9 @@ export function Chat() {
         ))}
         {pending && (
           <div className="flex justify-start">
-            <Card className="p-3 text-sm text-muted-foreground">Thinking…</Card>
+            <Card className="p-3 text-sm text-primary/80 bg-card/60 backdrop-blur-md border-primary/30 label-mono">
+              // processing signal…
+            </Card>
           </div>
         )}
       </div>
