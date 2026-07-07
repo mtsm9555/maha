@@ -70,16 +70,18 @@ export function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between px-4 py-3 bg-task-panel border-b border-border">
+    <div className="flex flex-col h-full min-h-0 relative z-10">
+      <div className="flex items-center justify-between px-4 py-3 bg-task-panel/60 backdrop-blur border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full grid place-items-center font-display font-bold text-lg text-primary-foreground glow-primary" style={{ background: "var(--gradient-primary)" }}>
-            M
+          <div className="relative h-12 w-12 grid place-items-center">
+            <span className="absolute inset-0 rounded-full border border-primary/40 hud-spin-slow" style={{ borderStyle: "dashed" }} />
+            <span className="absolute inset-1 rounded-full border border-primary/25 hud-spin-reverse" />
+            <span className="h-6 w-6 rounded-full bg-primary glow-accent" />
           </div>
           <div>
-            <h2 className="text-lg font-display font-semibold leading-tight tracking-tight text-glow">Maha</h2>
-            <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
-              {pending ? "thinking…" : synth.isSpeaking ? "speaking…" : "online"}
+            <h2 className="text-base font-display font-bold leading-tight text-primary text-glow">M.A.H.A.</h2>
+            <p className="label-mono">
+              {pending ? "// processing" : synth.isSpeaking ? "// transmitting" : "// standby"}
             </p>
           </div>
         </div>
