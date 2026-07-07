@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as LogsRouteImport } from './routes/logs'
-import { Route as FitnessRouteImport } from './routes/fitness'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ToolsRoute = ToolsRouteImport.update({
@@ -24,9 +24,9 @@ const LogsRoute = LogsRouteImport.update({
   path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FitnessRoute = FitnessRouteImport.update({
-  id: '/fitness',
-  path: '/fitness',
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/fitness': typeof FitnessRoute
+  '/chat': typeof ChatRoute
   '/logs': typeof LogsRoute
   '/tools': typeof ToolsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/fitness': typeof FitnessRoute
+  '/chat': typeof ChatRoute
   '/logs': typeof LogsRoute
   '/tools': typeof ToolsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/fitness': typeof FitnessRoute
+  '/chat': typeof ChatRoute
   '/logs': typeof LogsRoute
   '/tools': typeof ToolsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/fitness' | '/logs' | '/tools'
+  fullPaths: '/' | '/chat' | '/logs' | '/tools'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/fitness' | '/logs' | '/tools'
-  id: '__root__' | '/' | '/fitness' | '/logs' | '/tools'
+  to: '/' | '/chat' | '/logs' | '/tools'
+  id: '__root__' | '/' | '/chat' | '/logs' | '/tools'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  FitnessRoute: typeof FitnessRoute
+  ChatRoute: typeof ChatRoute
   LogsRoute: typeof LogsRoute
   ToolsRoute: typeof ToolsRoute
 }
@@ -85,11 +85,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/fitness': {
-      id: '/fitness'
-      path: '/fitness'
-      fullPath: '/fitness'
-      preLoaderRoute: typeof FitnessRouteImport
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,7 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  FitnessRoute: FitnessRoute,
+  ChatRoute: ChatRoute,
   LogsRoute: LogsRoute,
   ToolsRoute: ToolsRoute,
 }
