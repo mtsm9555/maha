@@ -73,13 +73,13 @@ export function Chat() {
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center justify-between px-4 py-3 bg-task-panel border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg">
+          <div className="h-10 w-10 rounded-full grid place-items-center font-display font-bold text-lg text-primary-foreground glow-primary" style={{ background: "var(--gradient-primary)" }}>
             M
           </div>
           <div>
-            <h2 className="text-lg font-semibold leading-tight">Maha</h2>
-            <p className="text-xs text-muted-foreground">
-              {pending ? "Thinking…" : synth.isSpeaking ? "Speaking…" : "Ready"}
+            <h2 className="text-lg font-display font-semibold leading-tight tracking-tight text-glow">Maha</h2>
+            <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
+              {pending ? "thinking…" : synth.isSpeaking ? "speaking…" : "online"}
             </p>
           </div>
         </div>
@@ -134,6 +134,7 @@ export function Chat() {
           onClick={handleVoice}
           disabled={pending}
           aria-label={speech.isListening ? "Stop listening" : "Start voice input"}
+          className={speech.isListening ? "animate-mic-pulse" : ""}
         >
           {speech.isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
