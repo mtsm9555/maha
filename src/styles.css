@@ -289,3 +289,21 @@
 .atmo-bars { display: flex; align-items: flex-end; gap: 6px; height: 50px; }
 .atmo-bar { flex: 1; background: var(--hud-cyan-dim); border-top: 2px solid var(--hud-cyan); }
 
+/* ================= Fitness dashboard cards ================= */
+.fit-card {
+  background-color: #0d0e12;
+  width: 320px;
+  height: 420px;
+  border-radius: 28px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+
