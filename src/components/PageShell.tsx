@@ -6,6 +6,7 @@ const NAV = [
   { to: "/chat", label: "Chat" },
   { to: "/tools", label: "Tools" },
   { to: "/logs", label: "Logs" },
+  { to: "/settings", label: "Settings" },
 ] as const;
 
 function useClock() {
