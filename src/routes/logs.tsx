@@ -1,35 +1,44 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { PageShell } from "@/components/PageShell";
+import type { Log } from "@/types";
 
 export const Route = createFileRoute("/logs")({
   head: () => ({
     meta: [
-      { title: "Activity logs" },
-      { name: "description", content: "Recent activity across tasks and tools." },
-      { property: "og:title", content: "Activity logs" },
-      { property: "og:description", content: "Recent activity across tasks and tools." },
+      { title: "Logs — Maha" },
+      { name: "description", content: "Recent activity across Maha's tasks and tools." },
+      { property: "og:title", content: "Logs — Maha" },
+      { property: "og:description", content: "Recent activity across Maha's tasks and tools." },
     ],
   }),
   component: LogsPage,
 });
-
-import type { Log } from "@/types";
 
 type LogRow = Log & {
   tasks: { title: string } | null;
   tools: { name: string } | null;
 };
 
-
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive"> = {
-  success: "default",
-  running: "secondary",
-  error: "destructive",
+const STATUS_STYLES: Record<string, { dot: string; text: string; bg: string }> = {
+  success: {
+    dot: "bg-emerald-400",
+    text: "text-emerald-300",
+    bg: "bg-emerald-400/10 border-emerald-400/20",
+  },
+  running: {
+    dot: "bg-cyan-400 animate-pulse",
+    text: "text-cyan-300",
+    bg: "bg-cyan-400/10 border-cyan-400/20",
+  },
+  error: {
+    dot: "bg-rose-400",
+    text: "text-rose-300",
+    bg: "bg-rose-400/10 border-rose-400/20",
+  },
 };
 
 function LogsPage() {
@@ -50,62 +59,69 @@ function LogsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background py-10 px-4">
-      <Toaster />
-      <div className="mx-auto max-w-3xl space-y-8">
-        <header className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h1 className="text-4xl font-bold tracking-tight">Logs</h1>
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-foreground">Tasks</Link>
-              <Link to="/tools" className="hover:text-foreground">Tools</Link>
-            </div>
-          </div>
-          <p className="text-muted-foreground">
-            {logs.length} recent {logs.length === 1 ? "entry" : "entries"}
-          </p>
-        </header>
-
-        <div className="space-y-2">
+    <>
+      <Toaster position="bottom-right" theme="dark" />
+      <PageShell
+        eyebrow="Telemetry"
+        title="Activity Logs"
+        subtitle={`${logs.length} recent ${logs.length === 1 ? "entry" : "entries"} from the agent runtime.`}
+      >
+        <div className="overflow-hidden rounded-[24px] border border-white/5 bg-[#0d0e14]">
           {loading ? (
-            <p className="text-center text-muted-foreground py-8">Loading…</p>
+            <p className="py-16 text-center text-white/40">Loading…</p>
           ) : logs.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No logs yet.</p>
+            <p className="py-16 text-center text-white/40">No logs yet.</p>
           ) : (
-            logs.map((log) => (
-              <Card key={log.id} className="p-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {log.status && (
-                        <Badge variant={STATUS_VARIANT[log.status] ?? "secondary"}>
-                          {log.status}
-                        </Badge>
-                      )}
-                      {log.tools?.name && (
-                        <span className="text-sm font-medium">{log.tools.name}</span>
-                      )}
-                      {log.tasks?.title && (
-                        <span className="text-sm text-muted-foreground truncate">
-                          → {log.tasks.title}
-                        </span>
+            <ul className="divide-y divide-white/5">
+              {logs.map((log) => {
+                const style =
+                  STATUS_STYLES[log.status ?? ""] ?? {
+                    dot: "bg-white/40",
+                    text: "text-white/60",
+                    bg: "bg-white/5 border-white/10",
+                  };
+                return (
+                  <li
+                    key={log.id}
+                    className="flex flex-wrap items-start justify-between gap-3 px-5 py-4 transition hover:bg-white/[0.02]"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {log.status && (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-widest ${style.bg} ${style.text}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                            {log.status}
+                          </span>
+                        )}
+                        {log.tools?.name && (
+                          <span className="text-sm font-medium text-white">
+                            {log.tools.name}
+                          </span>
+                        )}
+                        {log.tasks?.title && (
+                          <span className="truncate text-sm text-white/50">
+                            → {log.tasks.title}
+                          </span>
+                        )}
+                      </div>
+                      {log.message && (
+                        <p className="whitespace-pre-wrap break-words font-mono text-xs text-white/60">
+                          {log.message}
+                        </p>
                       )}
                     </div>
-                    {log.message && (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
-                        {log.message}
-                      </p>
-                    )}
-                  </div>
-                  <time className="text-xs text-muted-foreground shrink-0">
-                    {new Date(log.created_at).toLocaleString()}
-                  </time>
-                </div>
-              </Card>
-            ))
+                    <time className="shrink-0 font-mono text-[11px] text-white/40 tabular-nums">
+                      {new Date(log.created_at).toLocaleString()}
+                    </time>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
-      </div>
-    </div>
+      </PageShell>
+    </>
   );
 }
