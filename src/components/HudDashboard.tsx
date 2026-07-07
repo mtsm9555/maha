@@ -4,9 +4,11 @@ import { toast } from "sonner";
 import { TOOL_RUNNERS, type ToolRunner } from "@/lib/toolRunners";
 
 function useClock() {
-  const [t, setT] = useState(() => new Date().toTimeString().split(" ")[0]);
+  const [t, setT] = useState<string>("");
   useEffect(() => {
-    const id = setInterval(() => setT(new Date().toTimeString().split(" ")[0]), 1000);
+    const tick = () => setT(new Date().toTimeString().split(" ")[0]);
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
   return t;
@@ -139,6 +141,7 @@ export function HudDashboard({ center, right }: { center: ReactNode; right: Reac
             <span>SYSTEM STATUS: <span className="hud-text-glow">ONLINE</span></span>
             <Link to="/tools" className="hover:text-white transition-colors">[01] TOOLS</Link>
             <Link to="/logs" className="hover:text-white transition-colors">[02] LOGS</Link>
+            <Link to="/fitness" className="hover:text-white transition-colors">[03] FITNESS</Link>
             <span className="hud-text-glow">{clock}</span>
           </div>
         </header>
