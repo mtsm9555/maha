@@ -8,6 +8,7 @@ import { Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { chatWithMaha } from "@/lib/chat.functions";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { JarvisHud } from "@/components/JarvisHud";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -71,7 +72,8 @@ export function Chat() {
 
   return (
     <div className="flex flex-col h-full min-h-0 relative z-10">
-      <div className="flex items-center justify-between px-4 py-3 bg-task-panel/60 backdrop-blur border-b border-border">
+      <JarvisHud speaking={pending || synth.isSpeaking || speech.isListening} />
+      <div className="relative z-10 flex items-center justify-between px-4 py-3 bg-task-panel/60 backdrop-blur border-b border-primary/30">
         <div className="flex items-center gap-3">
           <div className="relative h-12 w-12 grid place-items-center">
             <span className="absolute inset-0 rounded-full border border-primary/40 hud-spin-slow" style={{ borderStyle: "dashed" }} />
@@ -97,12 +99,14 @@ export function Chat() {
         </Button>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 p-4">
+      <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto space-y-3 p-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <Card
-              className={`p-3 max-w-[85%] text-sm whitespace-pre-wrap ${
-                m.role === "user" ? "bg-primary text-primary-foreground border-primary" : ""
+              className={`p-3 max-w-[85%] text-sm whitespace-pre-wrap backdrop-blur-md ${
+                m.role === "user"
+                  ? "bg-primary/90 text-primary-foreground border-primary glow-accent"
+                  : "bg-card/60 border-primary/30"
               }`}
             >
               {m.content}
@@ -111,7 +115,9 @@ export function Chat() {
         ))}
         {pending && (
           <div className="flex justify-start">
-            <Card className="p-3 text-sm text-muted-foreground">Thinking…</Card>
+            <Card className="p-3 text-sm text-primary/80 bg-card/60 backdrop-blur-md border-primary/30 label-mono">
+              // processing signal…
+            </Card>
           </div>
         )}
       </div>
@@ -121,7 +127,7 @@ export function Chat() {
           e.preventDefault();
           sendMessage(input);
         }}
-        className="flex gap-2 px-4 py-3 bg-task-panel border-t border-border"
+        className="relative z-10 flex gap-2 px-4 py-3 bg-task-panel/70 backdrop-blur border-t border-primary/30"
       >
         <Input
           placeholder={speech.isListening ? "Listening…" : "Type a message or use voice…"}
