@@ -39,11 +39,9 @@ export const useSpeechSynthesis = () => {
       audioRef.current = audio;
       audio.onended = () => {
         setIsSpeaking(false);
-        URL.revokeObjectURL(url);
       };
       audio.onerror = () => {
         setIsSpeaking(false);
-        URL.revokeObjectURL(url);
       };
       await audio.play();
     } catch (err) {
