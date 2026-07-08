@@ -111,6 +111,9 @@ function ToolsPage() {
           </div>
         </section>
 
+        <OrchestratorDebugPanel />
+
+
         {/* Catalog */}
         <section className="mt-10">
           <SectionHead eyebrow="Directory" title="Catalog" />
