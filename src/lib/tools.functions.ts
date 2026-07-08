@@ -12,24 +12,58 @@ function requireEnv(name: string): string {
   return v;
 }
 
+const HERMES_SYSTEM_PROMPT =
+  "You are Hermes, a self-improving AI agent inspired by Nous Research's Hermes Agent. " +
+  "Be concise, capable, and helpful. Reason step-by-step when useful, and produce clean, actionable answers.";
+
 async function runHermes(prompt: string): Promise<string> {
-  const key = requireEnv("HERMES_API_KEY");
-  const base = (process.env.HERMES_BASE_URL || "http://127.0.0.1:8642/v1").replace(/\/$/, "");
-  const model = process.env.HERMES_MODEL || "hermes-agent";
-  const res = await fetch(`${base}/chat/completions`, {
+  // If a self-hosted Hermes gateway is configured, use it. Otherwise fall back
+  // to Lovable AI Gateway so the tool works out of the box.
+  const externalBase = process.env.HERMES_BASE_URL;
+  const externalKey = process.env.HERMES_API_KEY;
+
+  if (externalBase && externalKey) {
+    const base = externalBase.replace(/\/$/, "");
+    const model = process.env.HERMES_MODEL || "hermes-agent";
+    const res = await fetch(`${base}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${externalKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: HERMES_SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+    if (!res.ok) throw new Error(`Hermes HTTP ${res.status}: ${await res.text()}`);
+    const data = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+      text?: string;
+    };
+    return data.choices?.[0]?.message?.content ?? data.text ?? "";
+  }
+
+  const key = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.HERMES_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
     body: JSON.stringify({
       model,
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        { role: "system", content: HERMES_SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
     }),
   });
-  if (!res.ok) throw new Error(`Hermes HTTP ${res.status}: ${await res.text()}`);
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-    text?: string;
-  };
-  return data.choices?.[0]?.message?.content ?? data.text ?? "";
+  if (!res.ok) throw new Error(`Hermes (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 async function runPicoclaw(command: string): Promise<unknown> {
