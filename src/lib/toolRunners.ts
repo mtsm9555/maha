@@ -71,6 +71,25 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     sampleInput: '{"workflowId":"test","payload":{"ping":true}}',
     run: call("n8n"),
   },
+  {
+    key: "openclaw",
+    label: "OpenClaw",
+    category: "ai",
+    inputLabel: "Message for your personal assistant",
+    placeholder: "Ask OpenClaw anything…",
+    sampleInput: "Draft a 1-line status update for the team standup.",
+    run: call("openclaw"),
+  },
+  {
+    key: "orchestrator",
+    label: "Orchestrator (all tools)",
+    category: "automation",
+    inputLabel: "Natural-language task — auto-routed across tools",
+    placeholder: "e.g. OCR this image: https://…/pic.png",
+    sampleInput: "Say hello and route the reply through OpenClaw.",
+    run: call("orchestrator"),
+  },
+
 ];
 
 export function findRunner(name: string | null | undefined): ToolRunner | undefined {
