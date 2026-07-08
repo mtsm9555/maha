@@ -497,6 +497,8 @@ async function runGenspark(task: string): Promise<string> {
 export const runTool = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<{ output: string }> => {
+    const { requireUnlocked } = await import("./gate.server");
+    await requireUnlocked();
     const toText = (v: unknown) =>
       typeof v === "string" ? v : JSON.stringify(v, null, 2);
 
@@ -553,6 +555,8 @@ export const routeTask = createServerFn({ method: "POST" })
     executionMs?: number;
     error?: string;
   }> => {
+    const { requireUnlocked } = await import("./gate.server");
+    await requireUnlocked();
     const t0 = Date.now();
     const plan = await pickTool(data.task);
     const routerMs = Date.now() - t0;

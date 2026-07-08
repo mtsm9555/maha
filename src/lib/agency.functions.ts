@@ -47,6 +47,8 @@ async function callLovableAI(systemPrompt: string, userMessage: string): Promise
 export const runAgent = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => runInputSchema.parse(d))
   .handler(async ({ data }): Promise<{ reply: string; agent: { name: string; division: string; emoji: string } }> => {
+    const { requireUnlocked } = await import("./gate.server");
+    await requireUnlocked();
     const agent = AGENTS.find((a) => a.slug === data.slug);
     if (!agent) throw new Error(`Unknown agent: ${data.slug}`);
     const reply = await callLovableAI(agent.systemPrompt, data.message);
