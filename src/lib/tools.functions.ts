@@ -73,16 +73,58 @@ async function runHermes(prompt: string): Promise<string> {
   return data.choices?.[0]?.message?.content ?? "";
 }
 
-async function runPicoclaw(command: string): Promise<unknown> {
-  const key = requireEnv("PICOCLAW_API_KEY");
-  const res = await fetch("https://api.picoclaw.io/execute", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ command }),
-  });
-  if (!res.ok) throw new Error(`Picoclaw HTTP ${res.status}`);
-  return res.json();
+const PICOCLAW_SYSTEM_PROMPT =
+  "You are Picoclaw, an ultra-lightweight, terse AI assistant inspired by Sipeed's PicoClaw. " +
+  "Answer with the shortest useful reply. Prefer imperative, single-purpose responses. " +
+  "When given a command-like input, simulate the tool call and return only the result.";
+
+async function runPicoclaw(command: string): Promise<string> {
+  // If a self-hosted Picoclaw server is configured, use it. Otherwise fall
+  // back to Lovable AI Gateway so the tool works out of the box.
+  const externalBase = process.env.PICOCLAW_BASE_URL;
+  const externalKey = process.env.PICOCLAW_API_KEY;
+
+  if (externalBase && externalKey) {
+    const base = externalBase.replace(/\/$/, "");
+    const res = await fetch(`${base}/execute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${externalKey}` },
+      body: JSON.stringify({ command }),
+    });
+    if (!res.ok) throw new Error(`Picoclaw HTTP ${res.status}: ${await res.text()}`);
+    const data = await res.json();
+    return typeof data === "string" ? data : JSON.stringify(data, null, 2);
+  }
+
+  const key = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.PICOCLAW_MODEL || "google/gemini-2.5-flash";
+  let res: Response;
+  try {
+    res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": key,
+        "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: PICOCLAW_SYSTEM_PROMPT },
+          { role: "user", content: command },
+        ],
+      }),
+    });
+  } catch (err) {
+    const e = err as Error & { cause?: unknown };
+    const cause = e.cause instanceof Error ? `${e.cause.name}: ${e.cause.message}` : String(e.cause ?? "");
+    throw new Error(`Picoclaw fetch to gateway failed: ${e.message}${cause ? ` (cause: ${cause})` : ""}`);
+  }
+  if (!res.ok) throw new Error(`Picoclaw (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
 }
+
 
 const NVIDIA_BASE = "https://integrate.api.nvidia.com/v1";
 
