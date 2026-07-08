@@ -47,7 +47,7 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     category: "vision",
     inputLabel: "Image URL",
     placeholder: "https://…/image.png",
-    sampleInput: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Camponotus_flavomarginatus_ant.jpg/320px-Camponotus_flavomarginatus_ant.jpg",
+    sampleInput: "https://picsum.photos/id/1025/400/300",
     run: call("nemotron-ocr"),
   },
   {
