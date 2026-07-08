@@ -2,9 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n"]),
+  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "orchestrator"]),
   input: z.string(),
 });
+
 
 function requireEnv(name: string): string {
   const v = process.env[name];
