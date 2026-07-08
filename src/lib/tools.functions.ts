@@ -183,9 +183,12 @@ async function runNvidiaBuild(raw: string): Promise<unknown> {
   return data.choices?.[0]?.message?.content ?? data;
 }
 
+const N8N_SYSTEM_PROMPT =
+  "You are a simulator for n8n workflow executions. Given a workflow id and JSON payload, " +
+  "respond with a compact JSON object representing a plausible workflow execution result " +
+  "(fields like executionId, status, startedAt, finishedAt, data). Return JSON only, no prose.";
+
 async function runN8N(raw: string): Promise<unknown> {
-  const base = requireEnv("N8N_WEBHOOK_BASE_URL");
-  const key = process.env.N8N_API_KEY;
   let workflowId = raw.trim();
   let payload: unknown = {};
   try {
@@ -199,16 +202,60 @@ async function runN8N(raw: string): Promise<unknown> {
     /* raw = workflow id */
   }
   if (!workflowId) throw new Error("workflowId is required");
-  const res = await fetch(`${base.replace(/\/$/, "")}/${workflowId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(key ? { "X-API-KEY": key } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`n8n HTTP ${res.status}`);
-  return res.json();
+
+  // If a real n8n webhook base is configured, call it. Otherwise fall back to
+  // Lovable AI Gateway so the tool works out of the box.
+  const base = process.env.N8N_WEBHOOK_BASE_URL;
+  const key = process.env.N8N_API_KEY;
+
+  if (base) {
+    const res = await fetch(`${base.replace(/\/$/, "")}/${workflowId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(key ? { "X-API-KEY": key } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`n8n HTTP ${res.status}: ${await res.text()}`);
+    return res.json();
+  }
+
+  const lovableKey = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.N8N_MODEL || "google/gemini-2.5-flash";
+  let res: Response;
+  try {
+    res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": lovableKey,
+        "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: N8N_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `workflowId: ${workflowId}\npayload: ${JSON.stringify(payload)}`,
+          },
+        ],
+      }),
+    });
+  } catch (err) {
+    const e = err as Error & { cause?: unknown };
+    const cause = e.cause instanceof Error ? `${e.cause.name}: ${e.cause.message}` : String(e.cause ?? "");
+    throw new Error(`n8n fetch to gateway failed: ${e.message}${cause ? ` (cause: ${cause})` : ""}`);
+  }
+  if (!res.ok) throw new Error(`n8n (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content ?? "";
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 async function logResult(status: "success" | "error", message: string) {
