@@ -13,6 +13,8 @@ const inputSchema = z.object({
 export const chatWithMaha = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
+    const { requireUnlocked } = await import("./gate.server");
+    await requireUnlocked();
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 

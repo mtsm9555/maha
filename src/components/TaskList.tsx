@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +14,7 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import type { Task } from "@/types";
 import { TaskItem } from "./TaskItem";
+import { listTasks, addTask, toggleTask, deleteTask } from "@/lib/data.functions";
 
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -30,52 +30,59 @@ export function TaskList() {
   }, []);
 
   async function fetchTasks() {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("completed", { ascending: true })
-      .order("priority", { ascending: false })
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setTasks((data ?? []) as Task[]);
-    setLoading(false);
+    try {
+      const data = await listTasks();
+      setTasks((data ?? []) as Task[]);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function addTask(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
     setSubmitting(true);
-    const { error } = await supabase.from("tasks").insert({
-      title: title.trim(),
-      description: description.trim() || null,
-      priority: Number(priority),
-      due_date: dueDate ? new Date(dueDate).toISOString() : null,
-      completed: false,
-    });
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    setTitle("");
-    setDescription("");
-    setPriority("1");
-    setDueDate("");
-    toast.success("Task added");
-    fetchTasks();
+    try {
+      await addTask({
+        data: {
+          title: title.trim(),
+          description: description.trim() || null,
+          priority: Number(priority),
+          due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        },
+      });
+      setTitle("");
+      setDescription("");
+      setPriority("1");
+      setDueDate("");
+      toast.success("Task added");
+      fetchTasks();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  async function toggleTask(taskId: string, completed: boolean) {
-    const { error } = await supabase
-      .from("tasks")
-      .update({ completed: !completed })
-      .eq("id", taskId);
-    if (error) return toast.error(error.message);
-    fetchTasks();
+  async function handleToggle(taskId: string, completed: boolean) {
+    try {
+      await toggleTask({ data: { id: taskId, completed } });
+      fetchTasks();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    }
   }
 
-  async function deleteTask(taskId: string) {
-    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
-    if (error) return toast.error(error.message);
-    toast.success("Task deleted");
-    fetchTasks();
+  async function handleDelete(taskId: string) {
+    try {
+      await deleteTask({ data: { id: taskId } });
+      toast.success("Task deleted");
+      fetchTasks();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    }
   }
 
   const activeCount = tasks.filter((t) => !t.completed).length;
@@ -90,7 +97,7 @@ export function TaskList() {
       </div>
 
       <Card className="p-4 mb-4">
-        <form onSubmit={addTask} className="space-y-3">
+        <form onSubmit={handleAdd} className="space-y-3">
           <Input
             placeholder="What needs to be done?"
             value={title}
@@ -137,8 +144,8 @@ export function TaskList() {
             <TaskItem
               key={task.id}
               task={task}
-              onToggle={toggleTask}
-              onDelete={deleteTask}
+              onToggle={handleToggle}
+              onDelete={handleDelete}
             />
           ))
         )}
@@ -146,4 +153,3 @@ export function TaskList() {
     </div>
   );
 }
-

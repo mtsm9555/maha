@@ -1,5 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, type ReactNode } from "react";
+import { Lock } from "lucide-react";
+import { lockSite } from "@/lib/gate.functions";
 
 const NAV = [
   { to: "/", label: "Deck" },
@@ -81,8 +84,11 @@ export function PageShell({
           })}
         </nav>
 
-        <div className="hidden font-mono text-sm text-white/60 tabular-nums md:block">
-          {time || "--:--:--"}
+        <div className="flex items-center gap-3">
+          <LockButton />
+          <div className="hidden font-mono text-sm text-white/60 tabular-nums md:block">
+            {time || "--:--:--"}
+          </div>
         </div>
       </header>
 
@@ -105,5 +111,30 @@ export function PageShell({
 
       <div className="mx-auto mt-8 max-w-7xl">{children}</div>
     </main>
+  );
+}
+
+function LockButton() {
+  const router = useRouter();
+  const lock = useServerFn(lockSite);
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await lock();
+          await router.navigate({ to: "/unlock" });
+        } finally {
+          setBusy(false);
+        }
+      }}
+      disabled={busy}
+      title="Lock site"
+      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] uppercase tracking-widest text-white/60 transition hover:border-violet-400/40 hover:text-white disabled:opacity-50"
+    >
+      <Lock className="h-3 w-3" />
+      Lock
+    </button>
   );
 }

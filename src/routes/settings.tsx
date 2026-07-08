@@ -1,7 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { PageShell } from "@/components/PageShell";
+import { checkUnlocked } from "@/lib/gate.functions";
 
 export const Route = createFileRoute("/settings")({
+  beforeLoad: async ({ location }) => {
+    const { unlocked } = await checkUnlocked();
+    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
+  },
   head: () => ({
     meta: [
       { title: "Settings — Maha" },

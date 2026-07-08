@@ -28,6 +28,8 @@ export type CollectedArticle = {
 export const collectRssFeed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<{ items: CollectedArticle[] }> => {
+    const { requireUnlocked } = await import("../gate.server");
+    await requireUnlocked();
     const feed = await parser.parseURL(data.url).catch(() => null);
     if (!feed?.items) throw new Error("Not a valid RSS/Atom feed");
 
