@@ -5,7 +5,10 @@ export type ToolKey =
   | "picoclaw"
   | "nemotron-ocr"
   | "nvidia-build"
-  | "n8n";
+  | "n8n"
+  | "openclaw"
+  | "orchestrator";
+
 
 export type ToolRunner = {
   key: ToolKey;
