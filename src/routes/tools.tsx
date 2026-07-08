@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { ExternalLink, Search } from "lucide-react";
@@ -8,9 +7,15 @@ import { TOOL_RUNNERS } from "@/lib/toolRunners";
 import { ToolRunnerCard } from "@/components/ToolRunnerCard";
 import { OrchestratorDebugPanel } from "@/components/OrchestratorDebugPanel";
 import { PageShell } from "@/components/PageShell";
+import { checkUnlocked } from "@/lib/gate.functions";
+import { listTools } from "@/lib/data.functions";
 import type { Tool } from "@/types";
 
 export const Route = createFileRoute("/tools")({
+  beforeLoad: async ({ location }) => {
+    const { unlocked } = await checkUnlocked();
+    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
+  },
   head: () => ({
     meta: [
       { title: "Tools — Maha" },
@@ -30,15 +35,14 @@ function ToolsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("tools")
-        .select("*")
-        .eq("enabled", true)
-        .order("category", { ascending: true })
-        .order("name", { ascending: true });
-      if (error) toast.error(error.message);
-      else setTools(data as Tool[]);
-      setLoading(false);
+      try {
+        const data = await listTools();
+        setTools(data as Tool[]);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to load tools");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 

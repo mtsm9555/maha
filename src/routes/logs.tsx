@@ -1,12 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
+import { checkUnlocked } from "@/lib/gate.functions";
+import { listLogs } from "@/lib/data.functions";
 import type { Log } from "@/types";
 
 export const Route = createFileRoute("/logs")({
+  beforeLoad: async ({ location }) => {
+    const { unlocked } = await checkUnlocked();
+    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
+  },
   head: () => ({
     meta: [
       { title: "Logs — Maha" },
@@ -47,14 +52,14 @@ function LogsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("logs")
-        .select("*, tasks(title), tools(name)")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) toast.error(error.message);
-      else setLogs((data ?? []) as LogRow[]);
-      setLoading(false);
+      try {
+        const data = await listLogs();
+        setLogs((data ?? []) as LogRow[]);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to load logs");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
