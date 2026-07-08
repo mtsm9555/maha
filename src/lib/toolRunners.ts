@@ -7,6 +7,7 @@ export type ToolKey =
   | "nvidia-build"
   | "n8n"
   | "openclaw"
+  | "genspark"
   | "orchestrator";
 
 
