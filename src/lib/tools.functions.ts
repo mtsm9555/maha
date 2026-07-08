@@ -129,26 +129,57 @@ async function runPicoclaw(command: string): Promise<string> {
 const NVIDIA_BASE = "https://integrate.api.nvidia.com/v1";
 
 async function runNemotronOcr(imageUrl: string): Promise<string> {
-  const key = requireEnv("NEMOTRON_OCR_API_KEY");
-  const model = process.env.NEMOTRON_OCR_MODEL || "nvidia/nemotron-parse-1.1";
-  const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
+  // Prefer NVIDIA-hosted Nemotron if a key and model URL are configured.
+  // Otherwise fall back to Lovable AI Gateway (Gemini) for OCR so the tool
+  // works out of the box.
+  const nvKey = process.env.NEMOTRON_OCR_API_KEY;
+  const nvModel = process.env.NEMOTRON_OCR_MODEL;
+  if (nvKey && nvModel) {
+    const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${nvKey}` },
+      body: JSON.stringify({
+        model: nvModel,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract all text from this image. Return plain text only." },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+        max_tokens: 2048,
+      }),
+    });
+    if (!res.ok) throw new Error(`Nemotron OCR HTTP ${res.status}: ${await res.text()}`);
+    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    return data.choices?.[0]?.message?.content ?? "";
+  }
+
+  const key = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.NEMOTRON_OCR_FALLBACK_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
     body: JSON.stringify({
       model,
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: "Extract all text from this image. Return plain text only." },
+            { type: "text", text: "Describe/OCR this image. Return the extracted text (or, if there's no text, a short one-line caption). Plain text only." },
             { type: "image_url", image_url: { url: imageUrl } },
           ],
         },
       ],
-      max_tokens: 2048,
     }),
   });
-  if (!res.ok) throw new Error(`Nemotron OCR HTTP ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`Nemotron OCR (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   return data.choices?.[0]?.message?.content ?? "";
 }
