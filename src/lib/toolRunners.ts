@@ -82,6 +82,15 @@ export const TOOL_RUNNERS: ToolRunner[] = [
     run: call("openclaw"),
   },
   {
+    key: "genspark",
+    label: "Genspark Super Agent",
+    category: "ai",
+    inputLabel: "Research task or question",
+    placeholder: "e.g. Compare Bun vs Node for a serverless API in 2026",
+    sampleInput: "Give me a 2026 buyer's guide for a $600 4K OLED monitor.",
+    run: call("genspark"),
+  },
+  {
     key: "orchestrator",
     label: "Orchestrator (all tools)",
     category: "automation",
