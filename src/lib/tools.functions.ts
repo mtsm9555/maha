@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "orchestrator"]),
+  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "genspark", "orchestrator"]),
   input: z.string(),
 });
 
@@ -340,7 +340,7 @@ async function runOpenClaw(prompt: string): Promise<string> {
 // Orchestrator: picks the right tool for a natural-language task, runs it,
 // then hands the result to OpenClaw to summarise the final answer for the user.
 // This is how tools "connect to each other".
-type ToolName = "hermes" | "picoclaw" | "nemotron-ocr" | "nvidia-build" | "n8n" | "openclaw";
+type ToolName = "hermes" | "picoclaw" | "nemotron-ocr" | "nvidia-build" | "n8n" | "openclaw" | "genspark";
 
 async function pickTool(task: string): Promise<{ tool: ToolName; input: string; reason: string }> {
   const lovableKey = requireEnv("LOVABLE_API_KEY");
@@ -360,7 +360,8 @@ async function pickTool(task: string): Promise<{ tool: ToolName; input: string; 
           content:
             "You route tasks to one of these tools. Return JSON: {tool, input, reason}. " +
             "Tools: hermes (reasoning/chat), picoclaw (short commands), nemotron-ocr (image URL → text), " +
-            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels). " +
+            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels), " +
+            "genspark (autonomous research super-agent that plans, researches, and delivers decision-ready answers). " +
             "Pick the single best tool and craft the exact input string it should receive.",
         },
         { role: "user", content: task },
@@ -384,6 +385,7 @@ async function runByName(tool: ToolName, input: string): Promise<string> {
     case "nvidia-build": return toText(await runNvidiaBuild(input));
     case "n8n": return toText(await runN8N(input));
     case "openclaw": return await runOpenClaw(input);
+    case "genspark": return await runGenspark(input);
   }
 }
 
@@ -413,6 +415,39 @@ async function logResult(status: "success" | "error", message: string) {
     console.warn("[tools] log insert failed:", err instanceof Error ? err.message : err);
   }
 }
+const GENSPARK_SYSTEM_PROMPT =
+  "You are Genspark Super Agent — an autonomous research and planning agent inspired by genspark.ai. " +
+  "Given any task, respond in this exact structure:\n\n" +
+  "**🎯 Goal**\n<one-line restated objective>\n\n" +
+  "**🧭 Plan**\n1. …\n2. …\n3. …\n\n" +
+  "**🔎 Research notes**\n- key facts, sources, considerations\n\n" +
+  "**✅ Answer**\n<the final deliverable, richly formatted in markdown>\n\n" +
+  "**➡️ Suggested next steps**\n- …\n\n" +
+  "Be thorough, cite reasoning, and produce professional, decision-ready output.";
+
+async function runGenspark(task: string): Promise<string> {
+  const key = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.GENSPARK_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: GENSPARK_SYSTEM_PROMPT },
+        { role: "user", content: task },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Genspark (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
 
 export const runTool = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
@@ -440,6 +475,9 @@ export const runTool = createServerFn({ method: "POST" })
           break;
         case "openclaw":
           output = await runOpenClaw(data.input);
+          break;
+        case "genspark":
+          output = await runGenspark(data.input);
           break;
         case "orchestrator":
           output = await runOrchestrator(data.input);
