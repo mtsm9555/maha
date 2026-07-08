@@ -46,21 +46,28 @@ async function runHermes(prompt: string): Promise<string> {
 
   const key = requireEnv("LOVABLE_API_KEY");
   const model = process.env.HERMES_MODEL || "google/gemini-2.5-flash";
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: HERMES_SYSTEM_PROMPT },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": key,
+        "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: HERMES_SYSTEM_PROMPT },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+  } catch (err) {
+    const e = err as Error & { cause?: unknown };
+    const cause = e.cause instanceof Error ? `${e.cause.name}: ${e.cause.message}` : String(e.cause ?? "");
+    throw new Error(`Hermes fetch to gateway failed: ${e.message}${cause ? ` (cause: ${cause})` : ""}`);
+  }
   if (!res.ok) throw new Error(`Hermes (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   return data.choices?.[0]?.message?.content ?? "";
@@ -162,16 +169,23 @@ async function runN8N(raw: string): Promise<unknown> {
   return res.json();
 }
 
+async function logResult(status: "success" | "error", message: string) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("logs").insert({ status, message });
+  } catch (err) {
+    // Logging is best-effort; never let it mask the tool result.
+    console.warn("[tools] log insert failed:", err instanceof Error ? err.message : err);
+  }
+}
+
 export const runTool = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<{ output: string }> => {
     const toText = (v: unknown) =>
       typeof v === "string" ? v : JSON.stringify(v, null, 2);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     let output = "";
-    let status: "success" | "error" = "success";
-    let message = "";
     try {
       switch (data.tool) {
         case "hermes":
@@ -190,15 +204,12 @@ export const runTool = createServerFn({ method: "POST" })
           output = toText(await runN8N(data.input));
           break;
       }
-      message = `[${data.tool}] input=${data.input.slice(0, 200)} → ${output.slice(0, 500)}`;
     } catch (err) {
-      status = "error";
-      message = `[${data.tool}] input=${data.input.slice(0, 200)} → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      await supabaseAdmin.from("logs").insert({ status, message });
+      const msg = err instanceof Error ? err.message : String(err);
+      await logResult("error", `[${data.tool}] input=${data.input.slice(0, 200)} → ${msg}`);
       throw err;
     }
-    await supabaseAdmin.from("logs").insert({ status, message });
+    await logResult("success", `[${data.tool}] input=${data.input.slice(0, 200)} → ${output.slice(0, 500)}`);
     return { output };
   });
+
