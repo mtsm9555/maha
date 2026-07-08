@@ -6,6 +6,8 @@ export const Route = createFileRoute("/settings")({
     meta: [
       { title: "Settings — Maha" },
       { name: "description", content: "Configure Maha integrations and API keys." },
+      { property: "og:title", content: "Settings — Maha" },
+      { property: "og:description", content: "Configure Maha integrations and API keys." },
     ],
   }),
   component: SettingsPage,
