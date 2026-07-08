@@ -1,9 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Chat } from "@/components/Chat";
 import { Toaster } from "@/components/ui/sonner";
 import { PageShell } from "@/components/PageShell";
+import { checkUnlocked } from "@/lib/gate.functions";
 
 export const Route = createFileRoute("/chat")({
+  beforeLoad: async ({ location }) => {
+    const { unlocked } = await checkUnlocked();
+    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
+  },
   head: () => ({
     meta: [
       { title: "Chat — Maha" },
