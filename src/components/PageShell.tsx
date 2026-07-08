@@ -48,69 +48,76 @@ export function PageShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <main className="relative z-10 min-h-screen px-6 py-8 md:px-12 md:py-12">
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_10px_30px_-8px_rgba(139,92,246,0.7)]">
-            <span className="font-bold">M</span>
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
-          </div>
-          <div className="hidden md:block">
-            <div className="text-sm font-semibold tracking-wide text-white">
-              Maha <span className="text-white/40">· AI Agent</span>
+    <>
+      <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl border-b border-white/[0.04] bg-[#030307]/60">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="relative flex h-6 w-6 items-center justify-center">
+              <div className="absolute inset-0 rotate-45 animate-pulse rounded-md bg-gradient-to-tr from-cyan-400 to-purple-500" />
+              <div className="absolute h-4 w-4 rotate-45 rounded-sm bg-[#030307]" />
             </div>
-            <div className="text-[11px] uppercase tracking-[0.25em] text-white/40">
-              Command Deck
+            <span className="text-sm font-bold uppercase tracking-widest text-white">
+              Maha <span className="text-white/40">3.0</span>
+            </span>
+          </Link>
+
+          <nav className="hidden items-center gap-8 text-xs font-medium uppercase tracking-wider text-slate-400 md:flex">
+            {NAV.map((n) => {
+              const active = pathname === n.to;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={`transition-colors ${active ? "text-cyan-400" : "hover:text-cyan-400"}`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden font-mono text-[11px] tracking-widest text-slate-500 tabular-nums md:block">
+              {time || "--:--:--"}
             </div>
-          </div>
-        </Link>
-
-        <nav className="flex items-center gap-1 rounded-full border border-white/5 bg-[#0d0e14]/80 p-1 backdrop-blur">
-          {NAV.map((n) => {
-            const active = pathname === n.to;
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${
-                  active
-                    ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-[0_6px_20px_-6px_rgba(139,92,246,0.8)]"
-                    : "text-white/60 hover:text-white"
-                }`}
-              >
-                {n.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <LockButton />
-          <div className="hidden font-mono text-sm text-white/60 tabular-nums md:block">
-            {time || "--:--:--"}
+            <LockButton />
+            <Link
+              to="/chat"
+              className="group relative overflow-hidden rounded-full p-[1px] focus:outline-none"
+            >
+              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500" />
+              <span className="relative inline-flex h-full w-full items-center justify-center rounded-full bg-[#030307] px-4 py-2 text-xs font-semibold text-white transition-all group-hover:bg-transparent">
+                Deploy Agent
+              </span>
+            </Link>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto mt-10 flex max-w-7xl flex-wrap items-end justify-between gap-4">
-        <div>
-          {eyebrow && (
-            <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">
-              {eyebrow}
-            </div>
-          )}
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="mt-2 max-w-xl text-sm text-white/50">{subtitle}</p>
-          )}
-        </div>
-        {actions}
-      </section>
+      <main className="relative z-10 min-h-screen px-6 pt-24 pb-16 md:px-12 md:pt-28">
+        <section className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-4">
+          <div>
+            {eyebrow && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[10px] uppercase tracking-widest text-cyan-400">
+                <span className="h-1 w-1 animate-ping rounded-full bg-cyan-400" />
+                {eyebrow}
+              </div>
+            )}
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-gradient-soft md:text-5xl">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-3 max-w-2xl text-sm font-light leading-relaxed text-slate-400 md:text-base">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {actions}
+        </section>
 
-      <div className="mx-auto mt-8 max-w-7xl">{children}</div>
-    </main>
+        <div className="mx-auto mt-10 max-w-7xl">{children}</div>
+      </main>
+    </>
   );
 }
 
@@ -131,7 +138,7 @@ function LockButton() {
       }}
       disabled={busy}
       title="Lock site"
-      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] uppercase tracking-widest text-white/60 transition hover:border-violet-400/40 hover:text-white disabled:opacity-50"
+      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] uppercase tracking-widest text-slate-400 transition hover:border-cyan-400/40 hover:text-cyan-400 disabled:opacity-50"
     >
       <Lock className="h-3 w-3" />
       Lock
