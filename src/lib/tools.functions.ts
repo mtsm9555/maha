@@ -507,4 +507,49 @@ export const runTool = createServerFn({ method: "POST" })
     return { output };
   });
 
+const routeInputSchema = z.object({
+  task: z.string().min(1),
+  execute: z.boolean().optional(),
+});
+
+export const routeTask = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => routeInputSchema.parse(data))
+  .handler(async ({ data }): Promise<{
+    tool: ToolName;
+    input: string;
+    reason: string;
+    routerMs: number;
+    output?: string;
+    executionMs?: number;
+    error?: string;
+  }> => {
+    const t0 = Date.now();
+    const plan = await pickTool(data.task);
+    const routerMs = Date.now() - t0;
+    if (!data.execute) {
+      return { tool: plan.tool, input: plan.input, reason: plan.reason, routerMs };
+    }
+    const t1 = Date.now();
+    try {
+      const output = await runByName(plan.tool, plan.input);
+      return {
+        tool: plan.tool,
+        input: plan.input,
+        reason: plan.reason,
+        routerMs,
+        output,
+        executionMs: Date.now() - t1,
+      };
+    } catch (err) {
+      return {
+        tool: plan.tool,
+        input: plan.input,
+        reason: plan.reason,
+        routerMs,
+        error: err instanceof Error ? err.message : String(err),
+        executionMs: Date.now() - t1,
+      };
+    }
+  });
+
 
