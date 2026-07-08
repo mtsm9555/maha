@@ -8,24 +8,25 @@ export const synthesizeVoice = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     await requireUnlocked();
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.ELEVENLABS_API_KEY;
     if (!apiKey) throw new Error("Voice service is not configured");
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const voiceId = "4tRn1lSkEn13EVTuqb0g";
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          Accept: "audio/mpeg",
+        },
+        body: JSON.stringify({
+          text: data.text,
+          model_id: "eleven_turbo_v2_5",
+        }),
       },
-      body: JSON.stringify({
-        model: "openai/gpt-4o-mini-tts",
-        input: data.text,
-        voice: "alloy",
-        instructions: "Speak as Maha: clear, calm, warm, focused, and professional. Avoid flirtatious or exaggerated delivery.",
-        stream_format: "audio",
-        response_format: "mp3",
-      }),
-    });
+    );
 
     if (!res.ok) {
       const err = await res.text().catch(() => "");
