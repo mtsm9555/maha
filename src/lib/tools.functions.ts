@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "orchestrator"]),
+  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "genspark", "orchestrator"]),
   input: z.string(),
 });
 
@@ -413,6 +413,39 @@ async function logResult(status: "success" | "error", message: string) {
     console.warn("[tools] log insert failed:", err instanceof Error ? err.message : err);
   }
 }
+const GENSPARK_SYSTEM_PROMPT =
+  "You are Genspark Super Agent — an autonomous research and planning agent inspired by genspark.ai. " +
+  "Given any task, respond in this exact structure:\n\n" +
+  "**🎯 Goal**\n<one-line restated objective>\n\n" +
+  "**🧭 Plan**\n1. …\n2. …\n3. …\n\n" +
+  "**🔎 Research notes**\n- key facts, sources, considerations\n\n" +
+  "**✅ Answer**\n<the final deliverable, richly formatted in markdown>\n\n" +
+  "**➡️ Suggested next steps**\n- …\n\n" +
+  "Be thorough, cite reasoning, and produce professional, decision-ready output.";
+
+async function runGenspark(task: string): Promise<string> {
+  const key = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.GENSPARK_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: GENSPARK_SYSTEM_PROMPT },
+        { role: "user", content: task },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Genspark (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
 
 export const runTool = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
@@ -440,6 +473,9 @@ export const runTool = createServerFn({ method: "POST" })
           break;
         case "openclaw":
           output = await runOpenClaw(data.input);
+          break;
+        case "genspark":
+          output = await runGenspark(data.input);
           break;
         case "orchestrator":
           output = await runOrchestrator(data.input);
