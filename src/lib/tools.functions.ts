@@ -340,7 +340,7 @@ async function runOpenClaw(prompt: string): Promise<string> {
 // Orchestrator: picks the right tool for a natural-language task, runs it,
 // then hands the result to OpenClaw to summarise the final answer for the user.
 // This is how tools "connect to each other".
-type ToolName = "hermes" | "picoclaw" | "nemotron-ocr" | "nvidia-build" | "n8n" | "openclaw";
+type ToolName = "hermes" | "picoclaw" | "nemotron-ocr" | "nvidia-build" | "n8n" | "openclaw" | "genspark";
 
 async function pickTool(task: string): Promise<{ tool: ToolName; input: string; reason: string }> {
   const lovableKey = requireEnv("LOVABLE_API_KEY");
@@ -360,7 +360,8 @@ async function pickTool(task: string): Promise<{ tool: ToolName; input: string; 
           content:
             "You route tasks to one of these tools. Return JSON: {tool, input, reason}. " +
             "Tools: hermes (reasoning/chat), picoclaw (short commands), nemotron-ocr (image URL → text), " +
-            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels). " +
+            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels), " +
+            "genspark (autonomous research super-agent that plans, researches, and delivers decision-ready answers). " +
             "Pick the single best tool and craft the exact input string it should receive.",
         },
         { role: "user", content: task },
@@ -384,6 +385,7 @@ async function runByName(tool: ToolName, input: string): Promise<string> {
     case "nvidia-build": return toText(await runNvidiaBuild(input));
     case "n8n": return toText(await runN8N(input));
     case "openclaw": return await runOpenClaw(input);
+    case "genspark": return await runGenspark(input);
   }
 }
 
