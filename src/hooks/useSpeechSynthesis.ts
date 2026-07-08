@@ -18,16 +18,6 @@ export const useSpeechSynthesis = () => {
     setIsSpeaking(false);
   };
 
-  const fallback = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  };
-
   const speak = async (text: string) => {
     if (!text?.trim()) return;
     stop();
@@ -37,17 +27,12 @@ export const useSpeechSynthesis = () => {
       const url = `data:${mimeType};base64,${audioBase64}`;
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => {
-        setIsSpeaking(false);
-      };
-      audio.onerror = () => {
-        setIsSpeaking(false);
-      };
+      audio.onended = () => setIsSpeaking(false);
+      audio.onerror = () => setIsSpeaking(false);
       await audio.play();
     } catch (err) {
-      console.warn('ElevenLabs TTS failed, falling back to browser voice:', err);
+      console.error('ElevenLabs TTS failed:', err);
       setIsSpeaking(false);
-      fallback(text);
     }
   };
 
