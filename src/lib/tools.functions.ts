@@ -358,11 +358,26 @@ async function pickTool(task: string): Promise<{ tool: ToolName; input: string; 
         {
           role: "system",
           content:
-            "You route tasks to one of these tools. Return JSON: {tool, input, reason}. " +
-            "Tools: hermes (reasoning/chat), picoclaw (short commands), nemotron-ocr (image URL → text), " +
-            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels), " +
-            "genspark (autonomous research super-agent that plans, researches, and delivers decision-ready answers). " +
-            "Pick the single best tool and craft the exact input string it should receive.",
+            "You are a strict tool router. Return JSON: {tool, input, reason}.\n\n" +
+            "Available tools:\n" +
+            "- genspark: autonomous research & PLANNING super-agent. Delivers structured Goal/Plan/Research/Answer/Next-steps output.\n" +
+            "- hermes: short reasoning or conversational chat replies.\n" +
+            "- picoclaw: ultra-short command-style responses (e.g. ping, echo).\n" +
+            "- nemotron-ocr: extract text from an image URL.\n" +
+            "- nvidia-build: NVIDIA-hosted LLM, expects JSON {skill,input}.\n" +
+            "- n8n: run/simulate an n8n workflow, expects JSON {workflowId,payload}.\n" +
+            "- openclaw: personal assistant reply for messaging channels.\n\n" +
+            "ROUTING RULES (in priority order):\n" +
+            "1. If the task involves ANY of: research, planning, strategy, comparison, buyer's guide, market analysis, " +
+            "'how should I', 'help me plan', roadmap, step-by-step plan, evaluate options, pros/cons, decision, " +
+            "multi-step task breakdown, or requires a decision-ready deliverable → ALWAYS pick 'genspark'.\n" +
+            "2. If it's an image URL to transcribe → 'nemotron-ocr'.\n" +
+            "3. If it's a workflow JSON with workflowId → 'n8n'.\n" +
+            "4. If it's a JSON with skill+input → 'nvidia-build'.\n" +
+            "5. If it's a one-word command like 'ping' → 'picoclaw'.\n" +
+            "6. If it's a message to send on a channel (WhatsApp/Slack/etc.) → 'openclaw'.\n" +
+            "7. Otherwise (simple chat/reasoning) → 'hermes'.\n\n" +
+            "Craft 'input' as the exact string the chosen tool should receive. When routing to genspark, pass the user's task verbatim.",
         },
         { role: "user", content: task },
       ],
