@@ -43,39 +43,61 @@ async function runPicoclaw(command: string): Promise<unknown> {
   return res.json();
 }
 
+const NVIDIA_BASE = "https://integrate.api.nvidia.com/v1";
+
 async function runNemotronOcr(imageUrl: string): Promise<string> {
   const key = requireEnv("NEMOTRON_OCR_API_KEY");
-  const res = await fetch("https://api.nvidia.com/nim/nemotron-ocr/v2/extract", {
+  const model = process.env.NEMOTRON_OCR_MODEL || "nvidia/nemotron-parse-1.1";
+  const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ image_url: imageUrl }),
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Extract all text from this image. Return plain text only." },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+      max_tokens: 2048,
+    }),
   });
-  if (!res.ok) throw new Error(`Nemotron OCR HTTP ${res.status}`);
-  const data = (await res.json()) as { text?: string };
-  return data.text ?? "";
+  if (!res.ok) throw new Error(`Nemotron OCR HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 async function runNvidiaBuild(raw: string): Promise<unknown> {
   const key = requireEnv("NVIDIA_BUILD_API_KEY");
-  let skill = "default";
-  let payload: unknown = raw;
+  let model = process.env.NVIDIA_BUILD_MODEL || "meta/llama-3.3-70b-instruct";
+  let prompt = raw;
   try {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") {
-      const obj = parsed as { skill?: string; input?: unknown };
-      skill = obj.skill ?? skill;
-      payload = obj.input ?? parsed;
+      const obj = parsed as { model?: string; skill?: string; input?: unknown; prompt?: string };
+      if (obj.model) model = obj.model;
+      if (obj.prompt) prompt = obj.prompt;
+      else if (typeof obj.input === "string") prompt = obj.input;
+      else if (obj.input !== undefined) prompt = JSON.stringify(obj.input);
     }
   } catch {
-    /* plain string */
+    /* plain string prompt */
   }
-  const res = await fetch("https://build.nvidia.com/api/skills/execute", {
+  const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-    body: JSON.stringify({ skill_name: skill, input: payload }),
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1024,
+    }),
   });
-  if (!res.ok) throw new Error(`NVIDIA Build HTTP ${res.status}`);
-  return res.json();
+  if (!res.ok) throw new Error(`NVIDIA Build HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? data;
 }
 
 async function runN8N(raw: string): Promise<unknown> {
