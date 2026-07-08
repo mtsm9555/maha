@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ExternalLink, Search } from "lucide-react";
 import { TOOL_RUNNERS } from "@/lib/toolRunners";
 import { ToolRunnerCard } from "@/components/ToolRunnerCard";
+import { OrchestratorDebugPanel } from "@/components/OrchestratorDebugPanel";
 import { PageShell } from "@/components/PageShell";
 import type { Tool } from "@/types";
 
