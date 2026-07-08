@@ -2,9 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const inputSchema = z.object({
-  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n"]),
+  tool: z.enum(["hermes", "picoclaw", "nemotron-ocr", "nvidia-build", "n8n", "openclaw", "orchestrator"]),
   input: z.string(),
 });
+
 
 function requireEnv(name: string): string {
   const v = process.env[name];
@@ -289,12 +290,126 @@ async function runN8N(raw: string): Promise<unknown> {
   }
 }
 
+const OPENCLAW_SYSTEM_PROMPT =
+  "You are OpenClaw, a personal AI assistant (github.com/openclaw/openclaw). " +
+  "You answer on the user's channels (WhatsApp, Telegram, Slack, Discord, iMessage, etc.). " +
+  "Be direct, capable, and helpful. Include a short 'delivered via: <channel>' hint when relevant.";
+
+async function runOpenClaw(prompt: string): Promise<string> {
+  // If a local/remote OpenClaw gateway is configured, hit it. Otherwise fall
+  // back to Lovable AI Gateway so the tool works out of the box.
+  const base = process.env.OPENCLAW_GATEWAY_URL;
+  const key = process.env.OPENCLAW_API_KEY;
+
+  if (base) {
+    const res = await fetch(`${base.replace(/\/$/, "")}/agent`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(key ? { Authorization: `Bearer ${key}` } : {}),
+      },
+      body: JSON.stringify({ message: prompt }),
+    });
+    if (!res.ok) throw new Error(`OpenClaw HTTP ${res.status}: ${await res.text()}`);
+    const data = (await res.json()) as { reply?: string; message?: string; text?: string };
+    return data.reply ?? data.message ?? data.text ?? JSON.stringify(data);
+  }
+
+  const lovableKey = requireEnv("LOVABLE_API_KEY");
+  const model = process.env.OPENCLAW_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": lovableKey,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: OPENCLAW_SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenClaw (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+// Orchestrator: picks the right tool for a natural-language task, runs it,
+// then hands the result to OpenClaw to summarise the final answer for the user.
+// This is how tools "connect to each other".
+type ToolName = "hermes" | "picoclaw" | "nemotron-ocr" | "nvidia-build" | "n8n" | "openclaw";
+
+async function pickTool(task: string): Promise<{ tool: ToolName; input: string; reason: string }> {
+  const lovableKey = requireEnv("LOVABLE_API_KEY");
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": lovableKey,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "You route tasks to one of these tools. Return JSON: {tool, input, reason}. " +
+            "Tools: hermes (reasoning/chat), picoclaw (short commands), nemotron-ocr (image URL → text), " +
+            "nvidia-build (NVIDIA hosted LLM, JSON {skill,input}), n8n (workflow JSON), openclaw (personal assistant on channels). " +
+            "Pick the single best tool and craft the exact input string it should receive.",
+        },
+        { role: "user", content: task },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Orchestrator router HTTP ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = data.choices?.[0]?.message?.content ?? "{}";
+  const parsed = JSON.parse(text) as { tool?: ToolName; input?: string; reason?: string };
+  const tool = parsed.tool ?? "hermes";
+  return { tool, input: parsed.input ?? task, reason: parsed.reason ?? "" };
+}
+
+async function runByName(tool: ToolName, input: string): Promise<string> {
+  const toText = (v: unknown) => (typeof v === "string" ? v : JSON.stringify(v, null, 2));
+  switch (tool) {
+    case "hermes": return await runHermes(input);
+    case "picoclaw": return toText(await runPicoclaw(input));
+    case "nemotron-ocr": return await runNemotronOcr(input);
+    case "nvidia-build": return toText(await runNvidiaBuild(input));
+    case "n8n": return toText(await runN8N(input));
+    case "openclaw": return await runOpenClaw(input);
+  }
+}
+
+async function runOrchestrator(task: string): Promise<string> {
+  const plan = await pickTool(task);
+  const raw = await runByName(plan.tool, plan.input);
+  // Hand off to OpenClaw for a final user-facing reply — this is the
+  // cross-tool "connection": planner → executor → assistant.
+  const finalPrompt =
+    `User task: ${task}\n\nRouted to tool: ${plan.tool} (${plan.reason})\n` +
+    `Tool input: ${plan.input}\nTool output:\n${raw}\n\n` +
+    `Write a concise final answer to the user based on the tool output.`;
+  const summary = await runOpenClaw(finalPrompt);
+  return [
+    `🧭 plan: ${plan.tool} — ${plan.reason}`,
+    `📥 input: ${plan.input}`,
+    `🔧 tool output:\n${raw}`,
+    `✅ final:\n${summary}`,
+  ].join("\n\n");
+}
+
 async function logResult(status: "success" | "error", message: string) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("logs").insert({ status, message });
   } catch (err) {
-    // Logging is best-effort; never let it mask the tool result.
     console.warn("[tools] log insert failed:", err instanceof Error ? err.message : err);
   }
 }
@@ -323,6 +438,12 @@ export const runTool = createServerFn({ method: "POST" })
         case "n8n":
           output = toText(await runN8N(data.input));
           break;
+        case "openclaw":
+          output = await runOpenClaw(data.input);
+          break;
+        case "orchestrator":
+          output = await runOrchestrator(data.input);
+          break;
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -332,4 +453,5 @@ export const runTool = createServerFn({ method: "POST" })
     await logResult("success", `[${data.tool}] input=${data.input.slice(0, 200)} → ${output.slice(0, 500)}`);
     return { output };
   });
+
 
