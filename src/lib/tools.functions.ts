@@ -186,7 +186,6 @@ async function runNemotronOcr(imageUrl: string): Promise<string> {
 }
 
 async function runNvidiaBuild(raw: string): Promise<unknown> {
-  const key = requireEnv("NVIDIA_BUILD_API_KEY");
   let model = process.env.NVIDIA_BUILD_MODEL || "meta/llama-3.3-70b-instruct";
   let prompt = raw;
   try {
@@ -201,18 +200,49 @@ async function runNvidiaBuild(raw: string): Promise<unknown> {
   } catch {
     /* plain string prompt */
   }
-  const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
+
+  // Prefer NVIDIA-hosted model if the key is configured. Otherwise fall back
+  // to Lovable AI Gateway so this tool works out of the box like the others.
+  const nvKey = process.env.NVIDIA_BUILD_API_KEY;
+  if (nvKey) {
+    const res = await fetch(`${NVIDIA_BASE}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${nvKey}` },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1024,
+      }),
+    });
+    if (!res.ok) throw new Error(`NVIDIA Build HTTP ${res.status}: ${await res.text()}`);
+    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    return data.choices?.[0]?.message?.content ?? data;
+  }
+
+  const lovableKey = requireEnv("LOVABLE_API_KEY");
+  const fbModel = process.env.NVIDIA_BUILD_FALLBACK_MODEL || "google/gemini-2.5-flash";
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": lovableKey,
+      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
+    },
     body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 1024,
+      model: fbModel,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are simulating an NVIDIA Build hosted LLM. Answer the user's request precisely and concisely.",
+        },
+        { role: "user", content: prompt },
+      ],
     }),
   });
-  if (!res.ok) throw new Error(`NVIDIA Build HTTP ${res.status}: ${await res.text()}`);
+  if (!res.ok) throw new Error(`NVIDIA Build (Lovable AI) HTTP ${res.status}: ${await res.text()}`);
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  return data.choices?.[0]?.message?.content ?? data;
+  return data.choices?.[0]?.message?.content ?? "";
 }
 
 const N8N_SYSTEM_PROMPT =
