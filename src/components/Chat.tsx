@@ -66,7 +66,7 @@ export function Chat() {
   }
 
   function toggleVoiceOut() {
-    if (synth.isSpeaking) window.speechSynthesis.cancel();
+    if (synth.isSpeaking) synth.stop();
     setVoiceOn((v) => !v);
   }
 

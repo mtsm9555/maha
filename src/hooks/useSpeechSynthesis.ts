@@ -31,7 +31,7 @@ export const useSpeechSynthesis = () => {
       audio.onerror = () => setIsSpeaking(false);
       await audio.play();
     } catch (err) {
-      console.error('ElevenLabs TTS failed:', err);
+      console.error('Voice synthesis failed:', err);
       setIsSpeaking(false);
     }
   };
