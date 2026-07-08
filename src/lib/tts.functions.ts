@@ -3,7 +3,7 @@ import { requireUnlocked } from "./gate.server";
 
 export const MAHA_VOICE_ID = "4tRn1lSkEn13EVTuqb0g";
 
-export const synthesizeVoice = createServerFn({ method: "POST", response: "raw" })
+export const synthesizeVoice = createServerFn({ method: "POST" })
   .inputValidator((input: { text: string; voiceId?: string }) => {
     if (!input?.text || typeof input.text !== "string") throw new Error("text required");
     return { text: input.text.slice(0, 4000), voiceId: input.voiceId || MAHA_VOICE_ID };
@@ -14,7 +14,7 @@ export const synthesizeVoice = createServerFn({ method: "POST", response: "raw" 
     if (!apiKey) throw new Error("ELEVENLABS_API_KEY not configured");
 
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${data.voiceId}/stream?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${data.voiceId}?output_format=mp3_44100_128`,
       {
         method: "POST",
         headers: { "xi-api-key": apiKey, "Content-Type": "application/json" },
@@ -34,7 +34,7 @@ export const synthesizeVoice = createServerFn({ method: "POST", response: "raw" 
       const err = await res.text().catch(() => "");
       throw new Error(`ElevenLabs TTS failed: ${res.status} ${err}`);
     }
-    return new Response(res.body, {
-      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
-    });
+    const buf = await res.arrayBuffer();
+    const audioBase64 = Buffer.from(buf).toString("base64");
+    return { audioBase64, mimeType: "audio/mpeg" };
   });

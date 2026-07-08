@@ -33,9 +33,8 @@ export const useSpeechSynthesis = () => {
     stop();
     setIsSpeaking(true);
     try {
-      const res = await synthesizeVoice({ data: { text } });
-      const blob = await (res as Response).blob();
-      const url = URL.createObjectURL(blob);
+      const { audioBase64, mimeType } = await synthesizeVoice({ data: { text } });
+      const url = `data:${mimeType};base64,${audioBase64}`;
       const audio = new Audio(url);
       audioRef.current = audio;
       audio.onended = () => {
