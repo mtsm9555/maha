@@ -170,17 +170,18 @@ function MetricsBlock() {
             Structured multi-agent loops and streaming schemas keep execution
             timelines in the sub-second range.
           </p>
-          <ul className="space-y-3 font-mono text-xs text-slate-400">
+          <ul className="space-y-3 font-mono text-xs text-slate-300">
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" /> Async event loops
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" aria-hidden="true" /> Async event loops
             </li>
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" /> Human-in-the-loop checkpoints
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" aria-hidden="true" /> Human-in-the-loop checkpoints
             </li>
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" /> Pre-compiled context pipes
+              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" aria-hidden="true" /> Pre-compiled context pipes
             </li>
           </ul>
+
         </div>
         <div className="space-y-6 rounded-2xl border border-white/[0.05] bg-gradient-to-b from-white/[0.02] to-transparent p-8">
           <div className="flex items-center justify-between border-b border-white/[0.05] pb-4 font-mono text-xs">
