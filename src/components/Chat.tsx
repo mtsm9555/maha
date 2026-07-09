@@ -5,15 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
-import { chatWithMaha } from "@/lib/chat.functions";
+import { sendChatMessage, loadConversation } from "@/lib/chat.functions";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
+const CONV_KEY = "maha.conversation_id";
 
 type Message = { role: "user" | "assistant"; content: string };
 
 export function Chat() {
-  const call = useServerFn(chatWithMaha);
+  const send = useServerFn(sendChatMessage);
+  const load = useServerFn(loadConversation);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hi, I'm Maha. What are you working on today?" },
   ]);
