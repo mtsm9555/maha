@@ -117,32 +117,36 @@ function FrameworkGrid() {
     },
   ];
   return (
-    <section id="frameworks" className="mt-20">
+    <section id="frameworks" className="mt-20" aria-labelledby="stack-heading">
       <div className="mx-auto mb-10 max-w-3xl text-center">
-        <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-4xl">
+        <h2
+          id="stack-heading"
+          className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-4xl"
+        >
           Enterprise Agentic Stack
         </h2>
-        <p className="text-sm font-light text-slate-400">
+        <p className="text-sm font-light text-slate-300">
           Engineered for real-world autonomy and low-latency deployment.
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((it) => (
-          <div
+          <article
             key={it.idx}
-            className={`rounded-xl border border-white/[0.04] bg-white/[0.01] p-6 transition-all duration-300 ${it.border}`}
+            className={`rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 ${it.border}`}
           >
             <div className={`mb-3 font-mono text-xs ${it.accent}`}>
               {it.idx} {it.tag}
             </div>
             <h3 className="mb-2 text-base font-medium text-white">{it.title}</h3>
-            <p className="text-xs font-light leading-relaxed text-slate-400">{it.body}</p>
-          </div>
+            <p className="text-sm font-light leading-relaxed text-slate-300">{it.body}</p>
+          </article>
         ))}
       </div>
     </section>
   );
 }
+
 
 /* ============ Metrics Block ============ */
 function MetricsBlock() {
