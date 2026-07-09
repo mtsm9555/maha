@@ -38,10 +38,11 @@ function MahaHome() {
       <MetricsBlock />
       <QuickActions />
 
-      <footer className="mt-16 flex items-center justify-between border-t border-white/[0.04] pt-6 font-mono text-[11px] text-slate-600">
+      <footer className="mt-16 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-6 font-mono text-[11px] text-slate-400">
         <span>© 2026 Maha Agentic OS · v0.4</span>
         <span className="tracking-widest uppercase">Status · Online</span>
       </footer>
+
     </PageShell>
   );
 }
@@ -117,32 +118,36 @@ function FrameworkGrid() {
     },
   ];
   return (
-    <section id="frameworks" className="mt-20">
+    <section id="frameworks" className="mt-20" aria-labelledby="stack-heading">
       <div className="mx-auto mb-10 max-w-3xl text-center">
-        <h2 className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-4xl">
+        <h2
+          id="stack-heading"
+          className="mb-3 text-2xl font-semibold tracking-tight text-white md:text-4xl"
+        >
           Enterprise Agentic Stack
         </h2>
-        <p className="text-sm font-light text-slate-400">
+        <p className="text-sm font-light text-slate-300">
           Engineered for real-world autonomy and low-latency deployment.
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((it) => (
-          <div
+          <article
             key={it.idx}
-            className={`rounded-xl border border-white/[0.04] bg-white/[0.01] p-6 transition-all duration-300 ${it.border}`}
+            className={`rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 ${it.border}`}
           >
             <div className={`mb-3 font-mono text-xs ${it.accent}`}>
               {it.idx} {it.tag}
             </div>
             <h3 className="mb-2 text-base font-medium text-white">{it.title}</h3>
-            <p className="text-xs font-light leading-relaxed text-slate-400">{it.body}</p>
-          </div>
+            <p className="text-sm font-light leading-relaxed text-slate-300">{it.body}</p>
+          </article>
         ))}
       </div>
     </section>
   );
 }
+
 
 /* ============ Metrics Block ============ */
 function MetricsBlock() {
@@ -165,17 +170,18 @@ function MetricsBlock() {
             Structured multi-agent loops and streaming schemas keep execution
             timelines in the sub-second range.
           </p>
-          <ul className="space-y-3 font-mono text-xs text-slate-400">
+          <ul className="space-y-3 font-mono text-xs text-slate-300">
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" /> Async event loops
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" aria-hidden="true" /> Async event loops
             </li>
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" /> Human-in-the-loop checkpoints
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-400" aria-hidden="true" /> Human-in-the-loop checkpoints
             </li>
             <li className="flex items-center gap-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" /> Pre-compiled context pipes
+              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" aria-hidden="true" /> Pre-compiled context pipes
             </li>
           </ul>
+
         </div>
         <div className="space-y-6 rounded-2xl border border-white/[0.05] bg-gradient-to-b from-white/[0.02] to-transparent p-8">
           <div className="flex items-center justify-between border-b border-white/[0.05] pb-4 font-mono text-xs">
@@ -214,16 +220,19 @@ function QuickActions() {
     emerald: "hover:border-emerald-500/30 group-hover:text-emerald-400",
   };
   return (
-    <section className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section
+      aria-label="Quick actions"
+      className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+    >
       {actions.map((a) => (
         <Link
           key={a.to}
           to={a.to}
-          className={`group rounded-xl border border-white/[0.04] bg-white/[0.01] p-6 transition-all duration-300 ${map[a.accent]}`}
+          className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030307] ${map[a.accent]}`}
         >
           <div className="text-base font-medium text-white">{a.label}</div>
-          <div className="mt-1 text-xs font-light text-slate-400">{a.sub}</div>
-          <div className={`mt-6 font-mono text-xs text-slate-500 transition ${map[a.accent]}`}>
+          <div className="mt-1 text-sm font-light text-slate-300">{a.sub}</div>
+          <div className={`mt-6 font-mono text-xs text-slate-400 transition ${map[a.accent]}`}>
             Open →
           </div>
         </Link>
@@ -231,3 +240,4 @@ function QuickActions() {
     </section>
   );
 }
+
