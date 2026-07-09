@@ -218,16 +218,19 @@ function QuickActions() {
     emerald: "hover:border-emerald-500/30 group-hover:text-emerald-400",
   };
   return (
-    <section className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section
+      aria-label="Quick actions"
+      className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+    >
       {actions.map((a) => (
         <Link
           key={a.to}
           to={a.to}
-          className={`group rounded-xl border border-white/[0.04] bg-white/[0.01] p-6 transition-all duration-300 ${map[a.accent]}`}
+          className={`group rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030307] ${map[a.accent]}`}
         >
           <div className="text-base font-medium text-white">{a.label}</div>
-          <div className="mt-1 text-xs font-light text-slate-400">{a.sub}</div>
-          <div className={`mt-6 font-mono text-xs text-slate-500 transition ${map[a.accent]}`}>
+          <div className="mt-1 text-sm font-light text-slate-300">{a.sub}</div>
+          <div className={`mt-6 font-mono text-xs text-slate-400 transition ${map[a.accent]}`}>
             Open →
           </div>
         </Link>
@@ -235,3 +238,4 @@ function QuickActions() {
     </section>
   );
 }
+
