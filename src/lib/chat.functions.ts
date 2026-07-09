@@ -15,8 +15,8 @@ export const chatWithMaha = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireUnlocked } = await import("./gate.server");
     await requireUnlocked();
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
 
     const systemPrompt = {
       role: "system" as const,
@@ -24,14 +24,17 @@ export const chatWithMaha = createServerFn({ method: "POST" })
         "You are Maha, a friendly and concise productivity assistant. Help the user organize their tasks, plan their day, and think through problems. Keep answers short and actionable.",
     };
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const model = process.env.OPENROUTER_MODEL || "x-ai/grok-4-fast:free";
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "X-Title": "Maha",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model,
         messages: [systemPrompt, ...data.messages],
       }),
     });
