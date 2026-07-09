@@ -36,6 +36,28 @@ export function Chat() {
     if (speech.transcript) setInput(speech.transcript);
   }, [speech.transcript]);
 
+  // Restore prior conversation on mount
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem(CONV_KEY) : null;
+    if (!stored) return;
+    setConversationId(stored);
+    load({ data: { conversationId: stored } })
+      .then(({ messages: rows }) => {
+        if (rows.length) {
+          setMessages(
+            rows
+              .filter((r) => r.role === "user" || r.role === "assistant")
+              .map((r) => ({ role: r.role as "user" | "assistant", content: r.content })),
+          );
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem(CONV_KEY);
+        setConversationId(null);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function sendMessage(text: string) {
     const trimmed = text.trim();
     if (!trimmed || pending) return;
@@ -44,7 +66,13 @@ export function Chat() {
     setInput("");
     setPending(true);
     try {
-      const { reply } = await call({ data: { messages: next } });
+      const { reply, conversationId: newId } = await send({
+        data: { conversationId, message: trimmed },
+      });
+      if (newId && newId !== conversationId) {
+        setConversationId(newId);
+        localStorage.setItem(CONV_KEY, newId);
+      }
       setMessages([...next, { role: "assistant", content: reply }]);
       if (voiceOn) synth.speak(reply);
     } catch (err) {
@@ -54,6 +82,7 @@ export function Chat() {
       setPending(false);
     }
   }
+
 
   function handleVoice() {
     if (!('webkitSpeechRecognition' in window)) {
