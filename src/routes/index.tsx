@@ -38,10 +38,11 @@ function MahaHome() {
       <MetricsBlock />
       <QuickActions />
 
-      <footer className="mt-16 flex items-center justify-between border-t border-white/[0.04] pt-6 font-mono text-[11px] text-slate-600">
+      <footer className="mt-16 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-6 font-mono text-[11px] text-slate-400">
         <span>© 2026 Maha Agentic OS · v0.4</span>
         <span className="tracking-widest uppercase">Status · Online</span>
       </footer>
+
     </PageShell>
   );
 }
