@@ -63,6 +63,49 @@ export default function MahaJarvisUI() {
     }
   }
 
+  const runVision = useServerFn(extractTextFromImage);
+  const [ocrText, setOcrText] = useState("");
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrError, setOcrError] = useState("");
+
+  async function handleCaptureScreen() {
+    if (ocrLoading) return;
+    setOcrError("");
+    setOcrText("");
+    let stream: MediaStream | null = null;
+    try {
+      // @ts-expect-error - getDisplayMedia is standard on modern browsers
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+      await new Promise((r) => setTimeout(r, 150));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas unavailable");
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+
+      setOcrLoading(true);
+      mahaBus.emit("tool:start", { name: "search" });
+      const { text } = await runVision({ data: { imageDataUrl: dataUrl } });
+      setOcrText(text || "(no text detected)");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/Permission denied|dismissed|aborted/i.test(msg)) setOcrError(msg);
+    } finally {
+      stream?.getTracks().forEach((t) => t.stop());
+      mahaBus.emit("tool:end", { name: "search" });
+      setOcrLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!hudBridgeReady) {
       initializeHudBridge();
