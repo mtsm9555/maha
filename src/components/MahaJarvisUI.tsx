@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Mic } from "lucide-react";
+import { useHudStore } from "@/stores/hudStore";
+import { mahaBus } from "@/lib/system/eventBus";
+import { initializeHudBridge } from "@/lib/system/hudBridge";
 
 const DEMO_SCRIPT: { role: "user" | "assistant"; content: string }[] = [
   { role: "user", content: "Status report." },
@@ -21,15 +24,21 @@ const ACTIVE_MAP = [["calendar", "memory"], [], ["tasks", "calendar"], []];
 
 type Msg = { role: "user" | "assistant"; content: string };
 
+let hudBridgeReady = false;
+
 export default function MahaJarvisUI() {
-  const [status, setStatus] = useState<"idle" | "listening" | "thinking" | "speaking">("idle");
+  const status = useHudStore((s) => s.status);
+  const activeTools = useHudStore((s) => s.activeTools);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
   const [clock, setClock] = useState("");
-  const [activeTools, setActiveTools] = useState<string[]>([]);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!hudBridgeReady) {
+      initializeHudBridge();
+      hudBridgeReady = true;
+    }
     const tick = () => setClock(new Date().toTimeString().slice(0, 8));
     tick();
     const iv = setInterval(tick, 1000);
@@ -47,28 +56,32 @@ export default function MahaJarvisUI() {
       return;
     }
     const userTurn = DEMO_SCRIPT[stepIndex];
-    setStatus("listening");
-    setActiveTools(["voice"]);
+    mahaBus.emit("voice:start");
+    mahaBus.emit("tool:start", { name: "voice" });
 
     timeoutRef.current = setTimeout(() => {
       setMessages((m) => [...m, userTurn]);
-      setStatus("thinking");
-      setActiveTools(ACTIVE_MAP[stepIndex] || []);
+      mahaBus.emit("tool:end", { name: "voice" });
+      mahaBus.emit("voice:end");
+      const toolsForStep = ACTIVE_MAP[stepIndex] || [];
+      toolsForStep.forEach((name) => mahaBus.emit("tool:start", { name }));
 
       timeoutRef.current = setTimeout(() => {
         const assistantTurn = DEMO_SCRIPT[stepIndex + 1];
-        setStatus("speaking");
-        setActiveTools(["voice"]);
+        toolsForStep.forEach((name) => mahaBus.emit("tool:end", { name }));
+        mahaBus.emit("thinking:end");
+        mahaBus.emit("tool:start", { name: "voice" });
         setMessages((m) => [...m, assistantTurn]);
 
         timeoutRef.current = setTimeout(() => {
-          setStatus("idle");
-          setActiveTools([]);
+          mahaBus.emit("tool:end", { name: "voice" });
+          useHudStore.getState().setStatus("idle");
           setStepIndex(stepIndex + 2);
         }, 1700);
       }, 1200);
     }, 1300);
   }
+
 
   const statusLabel = {
     idle: "STANDBY",
