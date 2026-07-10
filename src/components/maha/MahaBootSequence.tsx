@@ -142,7 +142,8 @@ export default function MahaBootSequence({
                 }}
                 className="text-white"
               >
-                >
+                {'>'}
+
                 {" "}
                 {
                   BOOT_STEPS[
