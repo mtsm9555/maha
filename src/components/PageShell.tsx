@@ -105,7 +105,7 @@ export function PageShell({
             >
               {time || "--:--:--"}
             </div>
-            <LockButton />
+
             <Link
               to="/chat"
               className="group relative hidden overflow-hidden rounded-full p-[1px] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030307] sm:inline-block"
