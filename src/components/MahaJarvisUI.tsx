@@ -37,6 +37,30 @@ export default function MahaJarvisUI() {
   const [clock, setClock] = useState("");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const runSearch = useServerFn(webSearch);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchAnswer, setSearchAnswer] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  async function handleSearch() {
+    const q = searchQuery.trim();
+    if (!q || searchLoading) return;
+    setSearchLoading(true);
+    setSearchError("");
+    setSearchAnswer("");
+    mahaBus.emit("tool:start", { name: "search" });
+    try {
+      const { answer } = await runSearch({ data: { query: q } });
+      setSearchAnswer(answer);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Search failed");
+    } finally {
+      mahaBus.emit("tool:end", { name: "search" });
+      setSearchLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!hudBridgeReady) {
       initializeHudBridge();
