@@ -74,7 +74,6 @@ export default function MahaJarvisUI() {
     setOcrText("");
     let stream: MediaStream | null = null;
     try {
-      // @ts-expect-error - getDisplayMedia is standard on modern browsers
       stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       const video = document.createElement("video");
       video.srcObject = stream;
