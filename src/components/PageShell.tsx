@@ -197,28 +197,3 @@ export function PageShell({
   );
 }
 
-function LockButton() {
-  const router = useRouter();
-  const lock = useServerFn(lockSite);
-  const [busy, setBusy] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        setBusy(true);
-        try {
-          await lock();
-          await router.navigate({ to: "/unlock" });
-        } finally {
-          setBusy(false);
-        }
-      }}
-      disabled={busy}
-      aria-label="Lock site"
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[10px] uppercase tracking-widest text-slate-300 transition hover:border-cyan-400/40 hover:text-cyan-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:opacity-50"
-    >
-      <Lock className="h-3 w-3" aria-hidden="true" />
-      <span className="hidden sm:inline">Lock</span>
-    </button>
-  );
-}
