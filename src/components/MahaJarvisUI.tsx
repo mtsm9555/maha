@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Mic } from "lucide-react";
 
-const DEMO_SCRIPT = [
+const DEMO_SCRIPT: { role: "user" | "assistant"; content: string }[] = [
   { role: "user", content: "Status report." },
   { role: "assistant", content: "All systems nominal. Two items pending before noon." },
   { role: "user", content: "Push them to one o'clock." },
