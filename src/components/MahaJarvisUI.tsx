@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic } from "lucide-react";
+import { Mic, Search } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useHudStore } from "@/stores/hudStore";
 import { mahaBus } from "@/lib/system/eventBus";
 import { initializeHudBridge } from "@/lib/system/hudBridge";
+import { webSearch } from "@/lib/search.functions";
+
 
 const DEMO_SCRIPT: { role: "user" | "assistant"; content: string }[] = [
   { role: "user", content: "Status report." },
@@ -33,6 +36,30 @@ export default function MahaJarvisUI() {
   const [stepIndex, setStepIndex] = useState(0);
   const [clock, setClock] = useState("");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const runSearch = useServerFn(webSearch);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchAnswer, setSearchAnswer] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  async function handleSearch() {
+    const q = searchQuery.trim();
+    if (!q || searchLoading) return;
+    setSearchLoading(true);
+    setSearchError("");
+    setSearchAnswer("");
+    mahaBus.emit("tool:start", { name: "search" });
+    try {
+      const { answer } = await runSearch({ data: { query: q } });
+      setSearchAnswer(answer);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Search failed");
+    } finally {
+      mahaBus.emit("tool:end", { name: "search" });
+      setSearchLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!hudBridgeReady) {
@@ -194,7 +221,54 @@ export default function MahaJarvisUI() {
             <Mic size={20} color={status === "idle" ? "#4C6270" : ringColor} strokeWidth={1.6} />
           </button>
         </div>
+
+        {/* WEB SEARCH PANEL */}
+        <div style={{ marginTop: 24, borderTop: "1px solid #16232E", paddingTop: 14 }}>
+          <div style={{ fontSize: 10, color: "#4C6270", letterSpacing: 1, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <Search size={11} strokeWidth={1.6} /> WEB SEARCH
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
+              placeholder="query the net"
+              disabled={searchLoading}
+              style={{
+                flex: 1, background: "#0A0F14", border: "1px solid #16232E", color: "#E8F6FF",
+                padding: "8px 10px", fontFamily: "inherit", fontSize: 12, outline: "none",
+                letterSpacing: 0.5,
+              }}
+            />
+            <button
+              onClick={handleSearch}
+              disabled={searchLoading || !searchQuery.trim()}
+              style={{
+                background: "#0A0F14", border: `1px solid ${searchLoading ? ringColor : "#16232E"}`,
+                color: searchLoading ? ringColor : "#8FA5B0", padding: "0 12px",
+                fontFamily: "inherit", fontSize: 11, letterSpacing: 1, cursor: "pointer",
+              }}
+            >
+              {searchLoading ? "..." : "RUN"}
+            </button>
+          </div>
+          {(searchAnswer || searchError) && (
+            <div
+              className="maha-log"
+              style={{
+                marginTop: 10, maxHeight: 200, overflowY: "auto",
+                border: "1px solid #16232E", background: "rgba(79,216,255,0.02)",
+                padding: "10px 12px", fontSize: 12, lineHeight: 1.6,
+                color: searchError ? "#FF6B6B" : "#8FA5B0", whiteSpace: "pre-wrap",
+                animation: "fade-in 0.3s ease",
+              }}
+            >
+              {searchError || searchAnswer}
+            </div>
+          )}
+        </div>
       </div>
+
 
       {/* TOOL GRAPH SIDE PANEL */}
       <div style={{ width: 200, position: "relative", zIndex: 1, paddingTop: 6 }}>
