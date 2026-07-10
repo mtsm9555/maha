@@ -4,6 +4,9 @@ import ReactorCore from "./ReactorCore";
 import MemoryGraph from "./MemoryGraph";
 import PlannerAgentPanel from "./PlannerAgentPanel";
 import RealWaveform from "./RealWaveform";
+import NotificationCenter from "./NotificationCenter";
+import VisionPanel from "./VisionPanel";
+import { useNotificationStore } from "@/stores/notificationStore";
 
 const systems = [
   { name: "Voice", icon: Mic, status: "ONLINE" },
@@ -25,12 +28,32 @@ const agents = [
 export default function MahaOS() {
   const [time, setTime] = useState<string>("");
 
+  const notifications = useNotificationStore((s) => s.notifications);
+  const addNotification = useNotificationStore((s) => s.addNotification);
+
   useEffect(() => {
     const update = () => setTime(new Date().toLocaleTimeString());
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (notifications.length > 0) return;
+    const seed = [
+      { title: "Memory Retrieved", message: "Loaded project context", type: "memory" as const },
+      { title: "Object Detected", message: "Laptop detected on screen", type: "vision" as const },
+      { title: "Planner Completed", message: "Generated 4-step plan", type: "success" as const },
+      { title: "Voice Engine", message: "Microphone standby", type: "info" as const },
+    ];
+    seed.forEach((n) =>
+      addNotification({
+        id: crypto.randomUUID(),
+        time: new Date().toLocaleTimeString(),
+        ...n,
+      }),
+    );
+  }, [notifications.length, addNotification]);
 
   return (
     <div className="h-screen w-full bg-[#05080C] text-[#E8F6FF] overflow-hidden">
@@ -83,28 +106,51 @@ export default function MahaOS() {
         </div>
 
         {/* CENTER */}
-        <div className="flex flex-col items-center justify-center relative overflow-hidden p-6 gap-6">
-          <div className="absolute inset-0 bg-[radial-gradient(circle,#0c1f2d_0%,transparent_70%)]" />
+        <div className="flex flex-col items-center relative overflow-y-auto p-6 gap-6">
+          <div className="absolute inset-0 bg-[radial-gradient(circle,#0c1f2d_0%,transparent_70%)] pointer-events-none" />
           <ReactorCore state="idle" />
           <div className="w-full max-w-[700px] relative">
             <RealWaveform mode="circular" height={220} />
           </div>
+          <div className="w-full max-w-[700px] relative">
+            <VisionPanel
+              status="analyzing"
+              detections={[
+                { id: "1", label: "Laptop", confidence: 98 },
+                { id: "2", label: "Monitor", confidence: 95 },
+                { id: "3", label: "Keyboard", confidence: 92 },
+              ]}
+              ocrText={"MAHA OS\nSYSTEM ONLINE\nCPU 14%"}
+            />
+          </div>
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="border-l border-[#152533] p-5 overflow-y-auto">
-          <h2 className="text-cyan-300 text-sm mb-4 tracking-widest">MEMORY GRAPH</h2>
-          <MemoryGraph />
+        <div className="border-l border-[#152533] p-5 overflow-y-auto space-y-6">
+          <div>
+            <h2 className="text-cyan-300 text-sm mb-4 tracking-widest">MEMORY GRAPH</h2>
+            <MemoryGraph />
+          </div>
 
-          <div className="mt-6">
-            <PlannerAgentPanel
-              goal="Build portfolio website"
-              steps={[
-                { id: "1", title: "Analyze requirements", tool: "memory", status: "completed" },
-                { id: "2", title: "Research examples", tool: "search", status: "completed" },
-                { id: "3", title: "Generate structure", tool: "planner", status: "running" },
-                { id: "4", title: "Create implementation plan", tool: "executor", status: "pending" },
-              ]}
+          <PlannerAgentPanel
+            goal="Build portfolio website"
+            steps={[
+              { id: "1", title: "Analyze requirements", tool: "memory", status: "completed" },
+              { id: "2", title: "Research examples", tool: "search", status: "completed" },
+              { id: "3", title: "Generate structure", tool: "planner", status: "running" },
+              { id: "4", title: "Create implementation plan", tool: "executor", status: "pending" },
+            ]}
+          />
+
+          <div className="h-[400px]">
+            <NotificationCenter
+              notifications={notifications.map((n) => ({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                time: n.time,
+                type: n.type,
+              }))}
             />
           </div>
         </div>
