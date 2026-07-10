@@ -1,8 +1,7 @@
-import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Lock, Menu, X } from "lucide-react";
-import { lockSite } from "@/lib/gate.functions";
+import { Menu, X } from "lucide-react";
+
 
 const NAV = [
   { to: "/", label: "Deck" },
