@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -7,15 +7,11 @@ import { TOOL_RUNNERS } from "@/lib/toolRunners";
 import { ToolRunnerCard } from "@/components/ToolRunnerCard";
 import { OrchestratorDebugPanel } from "@/components/OrchestratorDebugPanel";
 import { PageShell } from "@/components/PageShell";
-import { checkUnlocked } from "@/lib/gate.functions";
 import { listTools } from "@/lib/data.functions";
 import type { Tool } from "@/types";
 
 export const Route = createFileRoute("/tools")({
-  beforeLoad: async ({ location }) => {
-    const { unlocked } = await checkUnlocked();
-    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
-  },
+
   head: () => ({
     meta: [
       { title: "Tools — Maha" },

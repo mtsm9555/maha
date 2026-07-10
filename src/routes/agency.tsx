@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -9,13 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AGENTS, DIVISIONS, type Agent } from "@/lib/agency";
 import { runAgent } from "@/lib/agency.functions";
-import { checkUnlocked } from "@/lib/gate.functions";
 
 export const Route = createFileRoute("/agency")({
-  beforeLoad: async ({ location }) => {
-    const { unlocked } = await checkUnlocked();
-    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
-  },
+
   head: () => ({
     meta: [
       { title: "The Agency — 228 AI Specialists" },
