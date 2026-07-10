@@ -1,25 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
- * Shared-password site gate. Encrypts an `unlocked` flag into a signed cookie.
- * The password lives in SITE_PASSWORD (server-only); the cookie is encrypted
- * with SESSION_SECRET. Neither ever reaches the browser bundle.
+ * Site gate — Supabase-backed.
+ * On successful Supabase login, `unlockForUser` verifies the bearer token
+ * (via requireSupabaseAuth) and flips an encrypted `unlocked` cookie, which
+ * is what every protected route/server-fn checks via `checkUnlocked` /
+ * `requireUnlocked`. Signup/login UI lives in /unlock.
  */
 
-export const unlockSite = createServerFn({ method: "POST" })
-  .inputValidator((data: { password: string }) => {
-    if (typeof data?.password !== "string" || data.password.length === 0 || data.password.length > 512) {
-      throw new Error("Invalid password");
-    }
-    return data;
-  })
-  .handler(async ({ data }) => {
-    const { readGateSession, passwordMatches } = await import("./gate.server");
-    const expected = process.env.SITE_PASSWORD;
-    if (!expected) return { ok: false as const, reason: "SITE_PASSWORD not configured" };
-    if (!passwordMatches(data.password, expected)) {
-      return { ok: false as const };
-    }
+/** Called by the client after a successful Supabase sign-in. */
+export const unlockForUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { readGateSession } = await import("./gate.server");
     const { session } = await readGateSession();
     await session.update({ unlocked: true });
     return { ok: true as const };
