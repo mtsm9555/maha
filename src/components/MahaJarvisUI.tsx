@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic } from "lucide-react";
+import { Mic, Search } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useHudStore } from "@/stores/hudStore";
 import { mahaBus } from "@/lib/system/eventBus";
 import { initializeHudBridge } from "@/lib/system/hudBridge";
+import { webSearch } from "@/lib/search.functions";
+
 
 const DEMO_SCRIPT: { role: "user" | "assistant"; content: string }[] = [
   { role: "user", content: "Status report." },
