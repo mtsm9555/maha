@@ -3,6 +3,7 @@ import { Mic, Brain, Search, Eye, Calendar, Cpu } from "lucide-react";
 import ReactorCore from "./ReactorCore";
 import MemoryGraph from "./MemoryGraph";
 import PlannerAgentPanel from "./PlannerAgentPanel";
+import RealWaveform from "./RealWaveform";
 
 const systems = [
   { name: "Voice", icon: Mic, status: "ONLINE" },
@@ -82,18 +83,11 @@ export default function MahaOS() {
         </div>
 
         {/* CENTER */}
-        <div className="flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="flex flex-col items-center justify-center relative overflow-hidden p-6 gap-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle,#0c1f2d_0%,transparent_70%)]" />
           <ReactorCore state="idle" />
-          <div className="w-[700px] max-w-full mt-6 bg-[#0B1118] border border-[#152533] rounded-xl p-4 relative">
-            <div className="text-cyan-300 text-sm mb-3">LIVE ACTIVITY</div>
-            <div className="space-y-2 font-mono text-sm">
-              <div>[21:10:02] Wake word detected</div>
-              <div>[21:10:03] Loading memory...</div>
-              <div>[21:10:04] Search tool activated</div>
-              <div>[21:10:05] Planner running...</div>
-              <div>[21:10:06] Response generated</div>
-            </div>
+          <div className="w-full max-w-[700px] relative">
+            <RealWaveform mode="circular" height={220} />
           </div>
         </div>
 
