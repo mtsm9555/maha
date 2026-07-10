@@ -19,13 +19,15 @@ const TOOLS = [
 // which tools light up per demo step, to simulate real lookups
 const ACTIVE_MAP = [["calendar", "memory"], [], ["tasks", "calendar"], []];
 
+type Msg = { role: "user" | "assistant"; content: string };
+
 export default function MahaJarvisUI() {
-  const [status, setStatus] = useState("idle");
-  const [messages, setMessages] = useState([]);
+  const [status, setStatus] = useState<"idle" | "listening" | "thinking" | "speaking">("idle");
+  const [messages, setMessages] = useState<Msg[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
   const [clock, setClock] = useState("");
-  const [activeTools, setActiveTools] = useState([]);
-  const timeoutRef = useRef(null);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const tick = () => setClock(new Date().toTimeString().slice(0, 8));
