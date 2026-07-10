@@ -1,14 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import MahaJarvisUI from "@/components/MahaJarvisUI";
+import MahaOS from "@/components/maha/MahaOS";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Maha — HUD" },
-      { name: "description", content: "Jarvis-style HUD interface for Maha." },
-      { property: "og:title", content: "Maha — HUD" },
-      { property: "og:description", content: "Jarvis-style HUD interface for Maha." },
+      { title: "Maha OS" },
+      { name: "description", content: "Maha OS HUD interface." },
+      { property: "og:title", content: "Maha OS" },
+      { property: "og:description", content: "Maha OS HUD interface." },
     ],
   }),
-  component: MahaJarvisUI,
+  component: MahaOS,
 });
