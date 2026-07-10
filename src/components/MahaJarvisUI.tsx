@@ -35,7 +35,7 @@ export default function MahaJarvisUI() {
     const iv = setInterval(tick, 1000);
     return () => {
       clearInterval(iv);
-      clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
