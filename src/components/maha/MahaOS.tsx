@@ -28,12 +28,32 @@ const agents = [
 export default function MahaOS() {
   const [time, setTime] = useState<string>("");
 
+  const notifications = useNotificationStore((s) => s.notifications);
+  const addNotification = useNotificationStore((s) => s.addNotification);
+
   useEffect(() => {
     const update = () => setTime(new Date().toLocaleTimeString());
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (notifications.length > 0) return;
+    const seed = [
+      { title: "Memory Retrieved", message: "Loaded project context", type: "memory" as const },
+      { title: "Object Detected", message: "Laptop detected on screen", type: "vision" as const },
+      { title: "Planner Completed", message: "Generated 4-step plan", type: "success" as const },
+      { title: "Voice Engine", message: "Microphone standby", type: "info" as const },
+    ];
+    seed.forEach((n) =>
+      addNotification({
+        id: crypto.randomUUID(),
+        time: new Date().toLocaleTimeString(),
+        ...n,
+      }),
+    );
+  }, [notifications.length, addNotification]);
 
   return (
     <div className="h-screen w-full bg-[#05080C] text-[#E8F6FF] overflow-hidden">
