@@ -311,7 +311,41 @@ export default function MahaJarvisUI() {
             </div>
           )}
         </div>
+
+        {/* SCREEN CAPTURE + OCR PANEL */}
+        <div style={{ marginTop: 18, borderTop: "1px solid #16232E", paddingTop: 14 }}>
+          <div style={{ fontSize: 10, color: "#4C6270", letterSpacing: 1, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <ScanLine size={11} strokeWidth={1.6} /> SCREEN OCR
+          </div>
+          <button
+            onClick={handleCaptureScreen}
+            disabled={ocrLoading}
+            style={{
+              width: "100%", background: "#0A0F14",
+              border: `1px solid ${ocrLoading ? ringColor : "#16232E"}`,
+              color: ocrLoading ? ringColor : "#8FA5B0", padding: "8px 10px",
+              fontFamily: "inherit", fontSize: 11, letterSpacing: 1, cursor: "pointer",
+            }}
+          >
+            {ocrLoading ? "READING…" : "CAPTURE SCREEN"}
+          </button>
+          {(ocrText || ocrError) && (
+            <div
+              className="maha-log"
+              style={{
+                marginTop: 10, maxHeight: 220, overflowY: "auto",
+                border: "1px solid #16232E", background: "rgba(79,216,255,0.02)",
+                padding: "10px 12px", fontSize: 12, lineHeight: 1.6,
+                color: ocrError ? "#FF6B6B" : "#8FA5B0", whiteSpace: "pre-wrap",
+                animation: "fade-in 0.3s ease",
+              }}
+            >
+              {ocrError || ocrText}
+            </div>
+          )}
+        </div>
       </div>
+
 
 
       {/* TOOL GRAPH SIDE PANEL */}
