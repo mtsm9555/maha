@@ -1,17 +1,13 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { PageShell } from "@/components/PageShell";
-import { checkUnlocked } from "@/lib/gate.functions";
 import { listLogs } from "@/lib/data.functions";
 import type { Log } from "@/types";
 
 export const Route = createFileRoute("/logs")({
-  beforeLoad: async ({ location }) => {
-    const { unlocked } = await checkUnlocked();
-    if (!unlocked) throw redirect({ to: "/unlock", search: { redirect: location.href } });
-  },
+
   head: () => ({
     meta: [
       { title: "Logs — Maha" },
