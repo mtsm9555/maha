@@ -38,6 +38,27 @@ export type Database = {
         }
         Relationships: []
       }
+      entities: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       logs: {
         Row: {
           created_at: string | null
@@ -80,6 +101,27 @@ export type Database = {
           },
         ]
       }
+      memories: {
+        Row: {
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -108,6 +150,45 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relationships: {
+        Row: {
+          created_at: string
+          id: string
+          relation: string | null
+          source_id: string | null
+          target_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          relation?: string | null
+          source_id?: string | null
+          target_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          relation?: string | null
+          source_id?: string | null
+          target_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationships_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relationships_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
         ]
