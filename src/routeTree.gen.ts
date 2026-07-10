@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnlockRouteImport } from './routes/unlock'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LogsRouteImport } from './routes/logs'
@@ -17,11 +16,6 @@ import { Route as ChatRouteImport } from './routes/chat'
 import { Route as AgencyRouteImport } from './routes/agency'
 import { Route as IndexRouteImport } from './routes/index'
 
-const UnlockRoute = UnlockRouteImport.update({
-  id: '/unlock',
-  path: '/unlock',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
@@ -60,7 +54,6 @@ export interface FileRoutesByFullPath {
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
-  '/unlock': typeof UnlockRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +62,6 @@ export interface FileRoutesByTo {
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
-  '/unlock': typeof UnlockRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,29 +71,13 @@ export interface FileRoutesById {
   '/logs': typeof LogsRoute
   '/settings': typeof SettingsRoute
   '/tools': typeof ToolsRoute
-  '/unlock': typeof UnlockRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/agency'
-    | '/chat'
-    | '/logs'
-    | '/settings'
-    | '/tools'
-    | '/unlock'
+  fullPaths: '/' | '/agency' | '/chat' | '/logs' | '/settings' | '/tools'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agency' | '/chat' | '/logs' | '/settings' | '/tools' | '/unlock'
-  id:
-    | '__root__'
-    | '/'
-    | '/agency'
-    | '/chat'
-    | '/logs'
-    | '/settings'
-    | '/tools'
-    | '/unlock'
+  to: '/' | '/agency' | '/chat' | '/logs' | '/settings' | '/tools'
+  id: '__root__' | '/' | '/agency' | '/chat' | '/logs' | '/settings' | '/tools'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -111,18 +87,10 @@ export interface RootRouteChildren {
   LogsRoute: typeof LogsRoute
   SettingsRoute: typeof SettingsRoute
   ToolsRoute: typeof ToolsRoute
-  UnlockRoute: typeof UnlockRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unlock': {
-      id: '/unlock'
-      path: '/unlock'
-      fullPath: '/unlock'
-      preLoaderRoute: typeof UnlockRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tools': {
       id: '/tools'
       path: '/tools'
@@ -175,7 +143,6 @@ const rootRouteChildren: RootRouteChildren = {
   LogsRoute: LogsRoute,
   SettingsRoute: SettingsRoute,
   ToolsRoute: ToolsRoute,
-  UnlockRoute: UnlockRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
