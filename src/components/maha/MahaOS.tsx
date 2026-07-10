@@ -4,6 +4,9 @@ import ReactorCore from "./ReactorCore";
 import MemoryGraph from "./MemoryGraph";
 import PlannerAgentPanel from "./PlannerAgentPanel";
 import RealWaveform from "./RealWaveform";
+import NotificationCenter from "./NotificationCenter";
+import VisionPanel from "./VisionPanel";
+import { useNotificationStore } from "@/stores/notificationStore";
 
 const systems = [
   { name: "Voice", icon: Mic, status: "ONLINE" },
