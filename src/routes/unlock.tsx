@@ -2,7 +2,8 @@ import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
-import { unlockSite } from "@/lib/gate.functions";
+import { unlockForUser } from "@/lib/gate.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Lock } from "lucide-react";
 
 const searchSchema = z.object({
@@ -13,37 +14,51 @@ export const Route = createFileRoute("/unlock")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Unlock — Maha" },
-      { name: "description", content: "Enter the site password to unlock Maha." },
+      { title: "Sign in — Maha" },
+      { name: "description", content: "Sign in to Maha." },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: UnlockPage,
 });
 
+type Mode = "login" | "signup";
+
 function UnlockPage() {
   const router = useRouter();
   const { redirect } = useSearch({ from: "/unlock" });
-  const unlock = useServerFn(unlockSite);
+  const unlock = useServerFn(unlockForUser);
+  const [mode, setMode] = useState<Mode>("login");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!password) return;
+    if (!email || !password) return;
     setBusy(true);
     setError(null);
     try {
-      const res = await unlock({ data: { password } });
-      if (res.ok) {
-        const dest = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/chat";
-        await router.navigate({ to: dest });
-      } else {
-        setError(res.reason ?? "Incorrect password");
-      }
+      const { error: authErr } =
+        mode === "login"
+          ? await supabase.auth.signInWithPassword({ email, password })
+          : await supabase.auth.signUp({
+              email,
+              password,
+              options: { emailRedirectTo: window.location.origin },
+            });
+      if (authErr) throw new Error(authErr.message);
+
+      // Flip the site-gate cookie server-side (requires valid Supabase bearer).
+      const res = await unlock();
+      if (!res.ok) throw new Error("Sign-in succeeded but gate failed to unlock.");
+
+      const dest =
+        redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+      await router.navigate({ to: dest });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to unlock");
+      setError(err instanceof Error ? err.message : "Sign-in failed");
     } finally {
       setBusy(false);
     }
@@ -57,15 +72,30 @@ function UnlockPage() {
             <Lock className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold">Maha is locked</h1>
-            <p className="text-xs text-white/50">Enter the site password to continue.</p>
+            <h1 className="text-lg font-semibold">
+              {mode === "login" ? "Sign in to Maha" : "Create your Maha account"}
+            </h1>
+            <p className="text-xs text-white/50">
+              {mode === "login" ? "Use your email and password." : "One account, personal use."}
+            </p>
           </div>
         </div>
         <form onSubmit={onSubmit} className="space-y-3">
           <input
-            type="password"
-            autoComplete="current-password"
+            type="email"
+            autoComplete="email"
             autoFocus
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2.5 text-sm placeholder:text-white/30 focus:border-violet-400/60 focus:outline-none"
+          />
+          <input
+            type="password"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            required
+            minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
@@ -78,12 +108,22 @@ function UnlockPage() {
           )}
           <button
             type="submit"
-            disabled={busy || !password}
+            disabled={busy || !email || !password}
             className="w-full rounded-xl bg-violet-500 py-2.5 text-sm font-medium text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? "Unlocking…" : "Unlock"}
+            {busy ? "Working…" : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setMode(mode === "login" ? "signup" : "login");
+          }}
+          className="mt-4 w-full text-center text-xs text-white/50 hover:text-white/80"
+        >
+          {mode === "login" ? "Need an account? Sign up" : "Already registered? Sign in"}
+        </button>
       </div>
     </main>
   );
